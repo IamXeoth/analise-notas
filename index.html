@@ -197,13 +197,6 @@
             text-align: center;
         }
 
-        #fileInput {
-            display: none;
-            opacity: 0;
-            position: absolute;
-            z-index: -1;
-        }
-
         .results {
             display: none;
             margin-top: 2rem;
@@ -540,12 +533,26 @@
             <div class="upload-section">
                 <div class="upload-area" id="uploadArea">
                     <div class="upload-icon">📋</div>
-                    <div class="upload-text">Clique para selecionar ou arraste seu arquivo aqui</div>
-                    <div class="upload-subtext">Suporte para arquivos PDF de boletins escolares ou Excel (.xlsx, .xls)</div>
+                    <div class="upload-text">Selecione seu arquivo PDF ou Excel</div>
+                    <div class="upload-subtext">Arraste o arquivo aqui ou clique no botão abaixo</div>
+                    
+                    <label for="fileInput" style="
+                        display: inline-block;
+                        margin: 1rem auto;
+                        padding: 1rem 2rem;
+                        background: #0066cc;
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 1rem;
+                        font-weight: 600;
+                        transition: background 0.3s ease;
+                    ">
+                        📁 Escolher Arquivo
+                    </label>
+                    
                     <input type="file" id="fileInput" accept=".pdf,.xlsx,.xls" style="display: none;">
-                    <button type="button" id="uploadBtn" style="background: #444; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; margin-top: 1rem; cursor: pointer; font-size: 1rem;">
-                        📁 Selecionar Arquivo
-                    </button>
                 </div>
 
                 <div class="loading" id="loading">
@@ -560,12 +567,6 @@
                         <div class="file-name" id="fileName"></div>
                         <div class="file-details" id="fileDetails"></div>
                     </div>
-                </div>
-
-                <div class="debug-section" id="debugSection">
-                    <h4 style="color: #fff; margin-bottom: 1rem;">🔍 Debug - Texto Extraído:</h4>
-                    <button id="debugBtn" class="toggle-btn">📋 Mostrar Texto Extraído</button>
-                    <div id="debugText" class="debug-text"></div>
                 </div>
 
                 <div class="data-preview" id="dataPreview">
@@ -636,44 +637,17 @@
         // Elementos do DOM
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
-        const uploadBtn = document.getElementById('uploadBtn');
         const errorMsg = document.getElementById('errorMsg');
         const successMsg = document.getElementById('successMsg');
         const fileInfo = document.getElementById('fileInfo');
         const results = document.getElementById('results');
         const dataPreview = document.getElementById('dataPreview');
         const loading = document.getElementById('loading');
-        const debugSection = document.getElementById('debugSection');
-        const debugBtn = document.getElementById('debugBtn');
-        const debugText = document.getElementById('debugText');
 
         let studentsData = [];
         let extractedText = '';
 
-        // Debug button toggle
-        debugBtn.addEventListener('click', () => {
-            if (debugText.style.display === 'none') {
-                debugText.style.display = 'block';
-                debugBtn.textContent = '🔒 Ocultar Texto';
-            } else {
-                debugText.style.display = 'none';
-                debugBtn.textContent = '📋 Mostrar Texto Extraído';
-            }
-        });
-
-        // Upload interactions - múltiplas formas
-        uploadBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('Botão clicado');
-            fileInput.click();
-        });
-        
-        uploadArea.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('Área clicada');
-            fileInput.click();
-        });
-        
+        // Upload com drag and drop e input file
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadArea.classList.add('dragover');
@@ -694,10 +668,11 @@
            }
        });
 
-       fileInput.addEventListener('change', (e) => {
-           console.log('Input file changed');
+        // Input file
+        fileInput.addEventListener('change', (e) => {
+           console.log('Arquivo selecionado via input');
            if (e.target.files.length > 0) {
-               console.log('Arquivo selecionado:', e.target.files[0].name);
+               console.log('Nome do arquivo:', e.target.files[0].name);
                handleFile(e.target.files[0]);
            }
        });
@@ -749,63 +724,275 @@
        }
 
        function handleFile(file) {
+           console.log('=== INICIANDO HANDLEFILE ===');
+           console.log('Arquivo recebido:', file);
+           console.log('Nome:', file.name);
+           console.log('Tamanho:', file.size);
+           console.log('Tipo:', file.type);
+           
            const fileName = file.name;
            const fileExtension = fileName.split('.').pop().toLowerCase();
+           
+           console.log('Extensão detectada:', fileExtension);
 
            if (!['pdf', 'xlsx', 'xls'].includes(fileExtension)) {
+               console.log('Extensão não suportada');
                showError('Formato de arquivo não suportado. Use arquivos PDF, XLSX ou XLS');
                return;
            }
 
+           console.log('Extensão válida, iniciando processamento...');
            loading.style.display = 'block';
            errorMsg.style.display = 'none';
            successMsg.style.display = 'none';
            
+           console.log('Loading mostrado, criando FileReader...');
            const reader = new FileReader();
+           
            reader.onload = (e) => {
-               if (fileExtension === 'pdf') {
-                   processPDFToExcel(e.target.result, fileName);
-               } else {
-                   processExcelFile(e.target.result, fileName);
+               console.log('FileReader.onload executado');
+               console.log('Dados lidos, tamanho:', e.target.result.byteLength);
+               
+               try {
+                   if (fileExtension === 'pdf') {
+                       console.log('Chamando processPDFToExcel...');
+                       processPDFToExcel(e.target.result, fileName);
+                   } else {
+                       console.log('Chamando processExcelFile...');
+                       processExcelFile(e.target.result, fileName);
+                   }
+               } catch (error) {
+                   console.error('Erro no processamento:', error);
+                   showError('Erro ao processar arquivo: ' + error.message);
                }
            };
+           
+           reader.onerror = (e) => {
+               console.error('Erro no FileReader:', e);
+               showError('Erro ao ler o arquivo');
+           };
 
+           console.log('Iniciando leitura do arquivo...');
            reader.readAsArrayBuffer(file);
+           console.log('FileReader.readAsArrayBuffer chamado');
        }
 
        async function processPDFToExcel(arrayBuffer, fileName) {
            try {
+               console.log('=== INICIANDO PROCESSPDFTEXCEL ===');
+               console.log('ArrayBuffer recebido, tamanho:', arrayBuffer.byteLength);
+               
                showSuccess('Convertendo PDF para formato Excel... Por favor aguarde.');
+               
+               console.log('Inicializando PDF.js...');
+               
+               // Verificar se PDF.js está carregado
+               if (typeof pdfjsLib === 'undefined') {
+                   throw new Error('PDF.js não está carregado');
+               }
+               
+               console.log('PDF.js carregado, processando documento...');
                
                // Extrair texto do PDF
                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+               console.log('PDF carregado, páginas:', pdf.numPages);
+               
                let fullText = '';
                
                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                   console.log(`Processando página ${pageNum}...`);
                    const page = await pdf.getPage(pageNum);
                    const textContent = await page.getTextContent();
                    const pageText = textContent.items.map(item => item.str).join(' ');
                    fullText += pageText + '\n';
+                   console.log(`Página ${pageNum} processada, caracteres: ${pageText.length}`);
                }
                
-               // Mostrar debug
-               extractedText = fullText;
-               debugSection.style.display = 'block';
-               debugText.textContent = fullText;
+               console.log('Texto completo extraído, caracteres totais:', fullText.length);
+               
+               // Mostrar no console o início do texto para debug
+               console.log('Primeiros 1000 caracteres do texto:', fullText.substring(0, 1000));
+               
+               console.log('Convertendo para estrutura Excel...');
                
                // Converter texto em estrutura Excel-like
                const excelData = convertPDFTextToExcelStructure(fullText);
                
+               console.log('Conversão concluída, linhas criadas:', excelData.length);
+               
                if (!excelData || excelData.length === 0) {
+                   console.log('Nenhum dado encontrado após conversão');
                    showError('Não foi possível converter o PDF. Verifique se é um boletim válido da SEE-PB.');
                    return;
                }
                
+               console.log('Processando dados como Excel...');
+               
                // Processar como se fosse Excel
                const students = processExcelData(excelData, fileName);
                
+               console.log('Estudantes processados:', students.length);
+               
                if (students.length === 0) {
                    showError('Nenhum estudante encontrado após conversão. Verifique o formato do PDF.');
+                   return;
+               }
+               
+               console.log('Finalizando processamento...');
+               
+               studentsData = students;
+               showDataPreview(students);
+               calculateStatistics(students, fileName);
+               
+               console.log('=== PROCESSAMENTO CONCLUÍDO ===');
+               
+           } catch (error) {
+               console.error('=== ERRO NO PROCESSAMENTO ===');
+               console.error('Erro completo:', error);
+               console.error('Stack trace:', error.stack);
+               showError('Erro ao converter PDF: ' + error.message);
+           }
+       }
+
+       function convertPDFTextToExcelStructure(text) {
+           console.log('=== CONVERTENDO PDF - BUSCANDO COLUNAS: ESTUDANTES | MÉDIA DO 1º PERÍODO | FREQUÊNCIA ===');
+           
+           const excelRows = [];
+           
+           console.log('Texto completo extraído:', text);
+           
+           // O texto vem em poucas linhas longas, então vamos buscar padrões dentro do texto todo
+           
+           // Estratégia: Buscar por padrões Nome + Nota + Frequência no texto completo
+           
+           // Regex para encontrar estudantes: Nome (palavras com maiúscula) + nota (X,X ou -) + ... + Frequente/Infrequente
+           const studentPattern = /([A-ZÁÊÇÕÍÓÚ][A-Za-záêçõüàíóúÀÁÊÇÕÍÓÚ\s]+?)\s+(\d+,\d+|\d+|\-)\s+\-\s+\-\s+\-\s+\-\s+\-\s+\-\s+(Frequente|Infrequente)/g;
+           
+           let match;
+           while ((match = studentPattern.exec(text)) !== null) {
+               const name = match[1].trim();
+               const grade = match[2];
+               const frequency = match[3];
+               
+               console.log(`✓ PADRÃO ENCONTRADO: Nome="${name}", Nota="${grade}", Freq="${frequency}"`);
+               
+               // Validar se é realmente um nome de estudante
+               if (name.length >= 3 && 
+                   name.length <= 100 && 
+                   !name.includes('ESTUDANTES') && 
+                   !name.includes('PERÍODO') &&
+                   !name.includes('MÉDIA') &&
+                   !name.includes('ECIT') &&
+                   !name.includes('Secretaria')) {
+                   
+                   excelRows.push({
+                       'ESTUDANTES': name,
+                       'MÉDIA DO 1º PERÍODO': grade,
+                       'FREQUÊNCIA': frequency
+                   });
+                   
+                   console.log(`✓ ESTUDANTE ADICIONADO: ${name} | ${grade} | ${frequency}`);
+               } else {
+                   console.log(`✗ Rejeitado (não é nome válido): "${name}"`);
+               }
+           }
+           
+           console.log('=== RESULTADO FINAL ===');
+           console.log(`Total de estudantes encontrados: ${excelRows.length}`);
+           excelRows.forEach((student, index) => {
+               console.log(`${index + 1}. ${student.ESTUDANTES} | ${student['MÉDIA DO 1º PERÍODO']} | ${student.FREQUÊNCIA}`);
+           });
+           
+           return excelRows;
+       }
+
+       function extractStudentData(line) {
+           console.log('    Extraindo dados de:', line);
+           
+           // Estratégia principal: encontrar as 3 colunas
+           
+           // 1. FREQUÊNCIA (última informação)
+           let frequency = '';
+           if (line.includes('Frequente') && !line.includes('Infrequente')) {
+               frequency = 'Frequente';
+           } else if (line.includes('Infrequente')) {
+               frequency = 'Infrequente';
+           } else {
+               frequency = 'Frequente'; // Padrão
+           }
+           
+           // 2. Remover informações após a frequência
+           let dataLine = line.replace(/\s+(Frequente|Infrequente).*$/, '');
+           console.log('    Linha limpa:', dataLine);
+           
+           // 3. Dividir em palavras
+           const words = dataLine.trim().split(/\s+/);
+           console.log('    Palavras:', words);
+           
+           // 4. MÉDIA DO 1º PERÍODO (buscar número decimal ou traço)
+           let gradeIndex = -1;
+           let grade = '';
+           
+           for (let i = 0; i < words.length; i++) {
+               // Buscar padrão de nota: número com vírgula, ponto ou traço
+               if (words[i].match(/^\d+[,.]?\d*$/) || words[i] === '-') {
+                   gradeIndex = i;
+                   grade = words[i];
+                   console.log(`    NOTA encontrada no índice ${i}: "${grade}"`);
+                   break;
+               }
+           }
+           
+           // 5. ESTUDANTES (nome completo antes da nota)
+           let studentName = '';
+           if (gradeIndex > 0) {
+               studentName = words.slice(0, gradeIndex).join(' ').trim();
+           } else if (words.length > 0) {
+               // Se não achou nota, pega as primeiras palavras que parecem nome
+               const nameWords = [];
+               for (const word of words) {
+                   if (word.match(/^[A-ZÁÊÇÕ]/)) {
+                       nameWords.push(word);
+                   } else {
+                       break;
+                   }
+               }
+               studentName = nameWords.join(' ').trim();
+           }
+           
+           console.log(`    NOME extraído: "${studentName}"`);
+           console.log(`    NOTA extraída: "${grade}"`);
+           console.log(`    FREQUÊNCIA extraída: "${frequency}"`);
+           
+           // Validar se temos dados mínimos
+           if (studentName.length >= 3 && studentName.length <= 100) {
+               return {
+                   'ESTUDANTES': studentName,
+                   'MÉDIA DO 1º PERÍODO': grade || '-',
+                   'FREQUÊNCIA': frequency
+               };
+           }
+           
+           console.log('    ✗ Dados insuficientes para criar estudante');
+           return null;
+       }
+
+       // Função extractDataFromLine removida - substituída por tryExtractStudent
+
+       async function processExcelFile(arrayBuffer, fileName) {
+           try {
+               showSuccess('Processando arquivo Excel... Por favor aguarde.');
+               
+               // Ler arquivo Excel
+               const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+               const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+               const excelData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+               
+               // Processar dados do Excel
+               const students = processExcelData(excelData, fileName);
+               
+               if (students.length === 0) {
+                   showError('Nenhum estudante encontrado no arquivo Excel. Verifique o formato.');
                    return;
                }
                
@@ -814,277 +1001,162 @@
                calculateStatistics(students, fileName);
                
            } catch (error) {
-               console.error('Erro ao converter PDF:', error);
-               showError('Erro ao converter PDF: ' + error.message);
+               console.error('Erro ao processar Excel:', error);
+               showError('Erro ao processar arquivo Excel: ' + error.message);
            }
        }
 
-       function convertPDFTextToExcelStructure(text) {
-           console.log('=== CONVERTENDO PDF PARA ESTRUTURA EXCEL ===');
+       function processExcelData(data, fileName) {
+           console.log('=== PROCESSANDO DADOS EXCEL ===');
            
-           const lines = text.split('\n');
-           const excelRows = [];
+           const students = [];
+           let headerRow = -1;
+           let studentsCol = -1;
+           let period1Col = -1;
+           let frequencyCol = -1;
            
-           // Procurar por linhas que contenham dados de estudantes
-           for (let i = 0; i < lines.length; i++) {
-               let line = lines[i].trim().replace(/\s+/g, ' ');
+           // Se os dados vieram da conversão PDF, já estão no formato correto
+           if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object' && data[0]['ESTUDANTES']) {
+               console.log('Dados já no formato objeto, processando...');
+               data.forEach(row => {
+                   if (row['ESTUDANTES'] && row['ESTUDANTES'].length >= 3) {
+                       let gradeValue = 0;
+                       let gradeText = row['MÉDIA DO 1º PERÍODO'];
+                       
+                       if (gradeText && gradeText !== '-') {
+                           gradeValue = parseFloat(gradeText.toString().replace(',', '.'));
+                           if (isNaN(gradeValue)) gradeValue = 0;
+                       }
+                       
+                       students.push({
+                           name: row['ESTUDANTES'],
+                           period1: gradeValue,
+                           period2: null,
+                           period3: null,
+                           period4: null,
+                           frequency: row['FREQUÊNCIA'] || 'Frequente'
+                       });
+                   }
+               });
                
-               // Pular linhas de cabeçalho e rodapé
-               if (line.includes('ECIT HENRIQUE') || 
-                   line.includes('Curso técnico') ||
-                   line.includes('Secretaria de Estado') ||
-                   line.includes('SIAGE Professor') ||
-                   line.includes('Data da emissão') ||
-                   line.includes('Usuário:') ||
-                   line.includes('Estas informações') ||
-                   line.length < 20) {
-                   continue;
+               console.log('Estudantes processados do formato objeto:', students.length);
+               return students;
+           }
+           
+           // Processar dados de Excel tradicional (array de arrays)
+           for (let i = 0; i < data.length; i++) {
+               const row = data[i];
+               if (!row || row.length === 0) continue;
+               
+               // Procurar cabeçalho
+               const rowText = row.join(' ').toLowerCase();
+               if (rowText.includes('estudantes') && rowText.includes('período')) {
+                   headerRow = i;
+                   
+                   // Encontrar colunas
+                   for (let j = 0; j < row.length; j++) {
+                       const cell = (row[j] || '').toString().toLowerCase();
+                       if (cell.includes('estudantes')) studentsCol = j;
+                       if (cell.includes('média') && cell.includes('1º')) period1Col = j;
+                       if (cell.includes('frequência')) frequencyCol = j;
+                   }
+                   
+                   console.log(`Cabeçalho encontrado na linha ${i}`);
+                   console.log(`Colunas: Estudantes=${studentsCol}, 1º Período=${period1Col}, Frequência=${frequencyCol}`);
+                   break;
+               }
+           }
+           
+           if (headerRow === -1) {
+               console.log('Cabeçalho não encontrado no Excel');
+               return students;
+           }
+           
+           // Processar dados dos estudantes
+           for (let i = headerRow + 1; i < data.length; i++) {
+               const row = data[i];
+               if (!row || row.length === 0) continue;
+               
+               const name = row[studentsCol];
+               const grade = row[period1Col];
+               const frequency = row[frequencyCol];
+               
+               if (name && name.toString().trim().length >= 3) {
+                   let gradeValue = 0;
+                   if (grade && grade !== '-') {
+                       gradeValue = parseFloat(grade.toString().replace(',', '.'));
+                       if (isNaN(gradeValue)) gradeValue = 0;
+                   }
+                   
+                   students.push({
+                       name: name.toString().trim(),
+                       period1: gradeValue,
+                       period2: null,
+                       period3: null,
+                       period4: null,
+                       frequency: frequency ? frequency.toString() : 'Frequente'
+                   });
+               }
+           }
+           
+           console.log('Estudantes extraídos do Excel:', students.length);
+           return students;
+       }
+
+       function calculateStatistics(students, fileName) {
+           const totalStudents = students.length;
+           
+           if (totalStudents === 0) {
+               showError('Nenhum estudante encontrado');
+               return;
+           }
+
+           let passCount = 0;
+           let lowGradeCount = 0;
+           let frequentCount = 0;
+           let infrequentCount = 0;
+           let totalGradeSum = 0;
+
+           students.forEach(student => {
+               // Usar apenas o 1º período - se for null, undefined, "--" ou vazio = 0
+               let period1Grade = student.period1;
+               if (period1Grade === null || period1Grade === undefined || period1Grade === '--' || period1Grade === '' || isNaN(period1Grade)) {
+                   period1Grade = 0;
+               } else {
+                   period1Grade = parseFloat(period1Grade);
                }
                
-               // Verificar se é linha de estudante
-               if ((line.includes('Frequente') || line.includes('Infrequente')) && 
-                   (line.includes('Cursando') || line.includes('Remanejado'))) {
-                   
-                   console.log('Convertendo linha de estudante:', line);
-                   
-                   // Extrair dados da linha
-                   const rowData = extractDataFromLine(line);
-                   if (rowData) {
-                       excelRows.push(rowData);
-                       console.log('Linha Excel criada:', rowData);
-                  }
-              }
-          }
-          
-          console.log('Total de linhas Excel criadas:', excelRows.length);
-          return excelRows;
-      }
+               // Todos os cálculos baseados APENAS no 1º período
+               if (period1Grade >= 7.0) passCount++;
+               if (period1Grade < 5.0) lowGradeCount++;
 
-      function extractDataFromLine(line) {
-          // Encontrar frequência
-          let frequency = line.includes('Frequente') ? 'Frequente' : 'Infrequente';
-          
-          // Remover parte final
-          let dataLine = line.replace(/\s+(Frequente|Infrequente)\s+(Cursando|Remanejado).*$/, '');
-          
-          // Dividir em partes
-          let parts = dataLine.split(' ');
-          
-          // Procurar pela nota
-          let gradeIndex = -1;
-          let gradeValue = '';
-          
-          for (let i = 0; i < parts.length; i++) {
-              if (parts[i].match(/^\d+,\d+$/) || parts[i] === '-') {
-                  // Verificar se após vem sequência de traços
-                  let dashesAfter = 0;
-                  for (let j = i + 1; j < Math.min(i + 8, parts.length); j++) {
-                      if (parts[j] === '-') dashesAfter++;
-                  }
-                  
-                  if (dashesAfter >= 4) {
-                      gradeIndex = i;
-                      gradeValue = parts[i];
-                      break;
-                  }
-              }
-          }
-          
-          if (gradeIndex >= 0) {
-              // Nome é tudo antes da nota
-              let nameParts = parts.slice(0, gradeIndex);
-              let name = nameParts.join(' ').trim();
-              
-              if (name.length >= 3) {
-                  return {
-                      'ESTUDANTES': name,
-                      'MÉDIA DO 1º PERÍODO': gradeValue,
-                      'FREQUÊNCIA': frequency
-                  };
-              }
-          }
-          
-          return null;
-      }
+               totalGradeSum += period1Grade;
 
-      async function processExcelFile(arrayBuffer, fileName) {
-          try {
-              showSuccess('Processando arquivo Excel... Por favor aguarde.');
-              
-              // Ler arquivo Excel
-              const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-              const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-              const excelData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-              
-              // Processar dados do Excel
-              const students = processExcelData(excelData, fileName);
-              
-              if (students.length === 0) {
-                  showError('Nenhum estudante encontrado no arquivo Excel. Verifique o formato.');
-                  return;
-              }
-              
-              studentsData = students;
-              showDataPreview(students);
-              calculateStatistics(students, fileName);
-              
-          } catch (error) {
-              console.error('Erro ao processar Excel:', error);
-              showError('Erro ao processar arquivo Excel: ' + error.message);
-          }
-      }
+               if (student.frequency === 'Frequente') frequentCount++;
+               else if (student.frequency === 'Infrequente') infrequentCount++;
+           });
 
-      function processExcelData(data, fileName) {
-          console.log('=== PROCESSANDO DADOS EXCEL ===');
-          
-          const students = [];
-          let headerRow = -1;
-          let studentsCol = -1;
-          let period1Col = -1;
-          let frequencyCol = -1;
-          
-          // Se os dados vieram da conversão PDF, já estão no formato correto
-          if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object' && data[0]['ESTUDANTES']) {
-              console.log('Dados já no formato objeto, processando...');
-              data.forEach(row => {
-                  if (row['ESTUDANTES'] && row['ESTUDANTES'].length >= 3) {
-                      let gradeValue = 0;
-                      let gradeText = row['MÉDIA DO 1º PERÍODO'];
-                      
-                      if (gradeText && gradeText !== '-') {
-                          gradeValue = parseFloat(gradeText.toString().replace(',', '.'));
-                          if (isNaN(gradeValue)) gradeValue = 0;
-                      }
-                      
-                      students.push({
-                          name: row['ESTUDANTES'],
-                          period1: gradeValue,
-                          period2: null,
-                          period3: null,
-                          period4: null,
-                          frequency: row['FREQUÊNCIA'] || 'Frequente'
-                      });
-                  }
-              });
-              
-              console.log('Estudantes processados do formato objeto:', students.length);
-              return students;
-          }
-          
-          // Processar dados de Excel tradicional (array de arrays)
-          for (let i = 0; i < data.length; i++) {
-              const row = data[i];
-              if (!row || row.length === 0) continue;
-              
-              // Procurar cabeçalho
-              const rowText = row.join(' ').toLowerCase();
-              if (rowText.includes('estudantes') && rowText.includes('período')) {
-                  headerRow = i;
-                  
-                  // Encontrar colunas
-                  for (let j = 0; j < row.length; j++) {
-                      const cell = (row[j] || '').toString().toLowerCase();
-                      if (cell.includes('estudantes')) studentsCol = j;
-                      if (cell.includes('média') && cell.includes('1º')) period1Col = j;
-                      if (cell.includes('frequência')) frequencyCol = j;
-                  }
-                  
-                  console.log(`Cabeçalho encontrado na linha ${i}`);
-                  console.log(`Colunas: Estudantes=${studentsCol}, 1º Período=${period1Col}, Frequência=${frequencyCol}`);
-                  break;
-              }
-          }
-          
-          if (headerRow === -1) {
-              console.log('Cabeçalho não encontrado no Excel');
-              return students;
-          }
-          
-          // Processar dados dos estudantes
-          for (let i = headerRow + 1; i < data.length; i++) {
-              const row = data[i];
-              if (!row || row.length === 0) continue;
-              
-              const name = row[studentsCol];
-              const grade = row[period1Col];
-              const frequency = row[frequencyCol];
-              
-              if (name && name.toString().trim().length >= 3) {
-                  let gradeValue = 0;
-                  if (grade && grade !== '-') {
-                      gradeValue = parseFloat(grade.toString().replace(',', '.'));
-                      if (isNaN(gradeValue)) gradeValue = 0;
-                  }
-                  
-                  students.push({
-                      name: name.toString().trim(),
-                      period1: gradeValue,
-                      period2: null,
-                      period3: null,
-                      period4: null,
-                      frequency: frequency ? frequency.toString() : 'Frequente'
-                  });
-              }
-          }
-          
-          console.log('Estudantes extraídos do Excel:', students.length);
-          return students;
-      }
+           const failCount = totalStudents - passCount;
+           
+           const passRate = Math.round((passCount / totalStudents) * 100);
+           const failRate = Math.round((failCount / totalStudents) * 100);
+           const lowGradeRate = Math.round((lowGradeCount / totalStudents) * 100);
+           const frequentRate = Math.round((frequentCount / totalStudents) * 100);
+           const infrequentRate = Math.round((infrequentCount / totalStudents) * 100);
+           const classAverage = Math.round((totalGradeSum / totalStudents) * 10) / 10;
 
-      function calculateStatistics(students, fileName) {
-          const totalStudents = students.length;
-          
-          if (totalStudents === 0) {
-              showError('Nenhum estudante encontrado');
-              return;
-          }
+           document.getElementById('passRate').textContent = passRate + '%';
+           document.getElementById('failRate').textContent = failRate + '%';
+           document.getElementById('avgGrade').textContent = classAverage.toFixed(1);
+           document.getElementById('lowGrades').textContent = lowGradeRate + '%';
+           document.getElementById('lowGradesDetail').textContent = `${lowGradeCount} estudantes com média < 5.0 no 1º período`;
+           document.getElementById('frequentStudents').textContent = frequentRate + '%';
+           document.getElementById('infrequentStudents').textContent = infrequentRate + '%';
 
-          let passCount = 0;
-          let lowGradeCount = 0;
-          let frequentCount = 0;
-          let infrequentCount = 0;
-          let totalGradeSum = 0;
-
-          students.forEach(student => {
-              // Usar apenas o 1º período - se for null, undefined, "--" ou vazio = 0
-              let period1Grade = student.period1;
-              if (period1Grade === null || period1Grade === undefined || period1Grade === '--' || period1Grade === '' || isNaN(period1Grade)) {
-                  period1Grade = 0;
-              } else {
-                  period1Grade = parseFloat(period1Grade);
-              }
-              
-              // Todos os cálculos baseados APENAS no 1º período
-              if (period1Grade >= 7.0) passCount++;
-              if (period1Grade < 5.0) lowGradeCount++;
-
-              totalGradeSum += period1Grade;
-
-              if (student.frequency === 'Frequente') frequentCount++;
-              else if (student.frequency === 'Infrequente') infrequentCount++;
-          });
-
-          const failCount = totalStudents - passCount;
-          
-          const passRate = Math.round((passCount / totalStudents) * 100);
-          const failRate = Math.round((failCount / totalStudents) * 100);
-          const lowGradeRate = Math.round((lowGradeCount / totalStudents) * 100);
-          const frequentRate = Math.round((frequentCount / totalStudents) * 100);
-          const infrequentRate = Math.round((infrequentCount / totalStudents) * 100);
-          const classAverage = Math.round((totalGradeSum / totalStudents) * 10) / 10;
-
-          document.getElementById('passRate').textContent = passRate + '%';
-          document.getElementById('failRate').textContent = failRate + '%';
-          document.getElementById('avgGrade').textContent = classAverage.toFixed(1);
-          document.getElementById('lowGrades').textContent = lowGradeRate + '%';
-          document.getElementById('lowGradesDetail').textContent = `${lowGradeCount} estudantes com média < 5.0 no 1º período`;
-          document.getElementById('frequentStudents').textContent = frequentRate + '%';
-          document.getElementById('infrequentStudents').textContent = infrequentRate + '%';
-
-          showFileInfo(fileName, totalStudents);
-          showSuccess(`Análise concluída! ${totalStudents} estudantes processados. Média geral do 1º período: ${classAverage.toFixed(1)} | Frequentes: ${frequentRate}%`);
-          results.style.display = 'block';
-      }
-  </script>
+           showFileInfo(fileName, totalStudents);
+           showSuccess(`Análise concluída! ${totalStudents} estudantes processados. Média geral do 1º período: ${classAverage.toFixed(1)} | Frequentes: ${frequentRate}%`);
+           results.style.display = 'block';
+       }
+   </script>
 </body>
 </html>
