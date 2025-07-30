@@ -559,6 +559,7 @@
             color: #ff4757;
             display: none;
             margin-bottom: 1rem;
+            white-space: pre-line;
         }
 
         .success {
@@ -886,7 +887,7 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="frequentStudents">0%</div>
-                        <div class="stat-label">Frequentes</div>
+                       <div class="stat-label">Frequentes</div>
                    </div>
                    <div class="stat-card">
                        <div class="stat-value" id="infrequentStudents">0%</div>
@@ -1262,19 +1263,33 @@
                    allText += pageText + '\n';
                }
                
+               console.log('Texto extraído do PDF (primeiros 1000 chars):', allText.substring(0, 1000));
+               
                const students = extractStudentsFromSIAGE(allText);
                
                if (students.length === 0) {
-                   showError('Não foi possível extrair dados do PDF. Verifique se é um boletim do SIAGE válido.');
+                   showError(`Não foi possível extrair dados do PDF.
+
+Verifique se:
+1. É um boletim do SIAGE oficial
+2. O período ${selectedPeriod}º existe no boletim
+3. O PDF contém dados de estudantes válidos
+
+Debug - Texto encontrado:
+"${allText.substring(0, 300)}..."
+
+Tente usar entrada manual ou uma planilha como alternativa.`);
                    return;
                }
                
+               console.log('Estudantes extraídos:', students);
                studentsData = students;
                showDataPreview(students);
                calculateStatistics(students, fileName);
                
            } catch (error) {
-               showError('Erro ao processar PDF: ' + error.message);
+               console.error('Erro detalhado:', error);
+               showError('Erro ao processar PDF: ' + error.message + '. Tente usar entrada manual ou planilha.');
            }
        }
 
@@ -1282,33 +1297,162 @@
            const students = [];
            const lines = text.split('\n');
            
-           // Procurar por dados de estudantes no texto
-           for (const line of lines) {
-               // Padrão básico para linhas de estudantes
-               const studentMatch = line.match(/^([A-ZÁÊÍÓÚÂÃÕÇ][a-záêíóúâãõç\s]+[A-ZÁÊÍÓÚÂÃÕÇ]*)\s+([\d,\s]+).*?(Frequente|Infrequente)?\s*Cursando?/i);
+           console.log('Total de linhas:', lines.length);
+           
+           let isDataSection = false;
+           let periodColumns = [];
+           
+           // Primeiro, encontrar as colunas de período
+           for (let i = 0; i < lines.length; i++) {
+               const line = lines[i];
                
-               if (studentMatch) {
-                   const name = studentMatch[1].trim();
-                   const gradesText = studentMatch[2];
-                   const frequency = studentMatch[3] || 'Frequente';
+               // Detectar cabeçalho com períodos
+               if (line.includes('MÉDIA DO') && line.includes('PERÍODO')) {
+                   const periodMatches = line.match(/MÉDIA DO (\d+)º PERÍODO/g);
+                   if (periodMatches) {
+                       periodColumns = periodMatches.map(match => {
+                           const num = match.match(/(\d+)º/);
+                           return num ? parseInt(num[1]) : null;
+                       }).filter(n => n !== null);
+                   }
+                   console.log('Períodos encontrados:', periodColumns);
+                   isDataSection = true;
+                   continue;
+               }
+               
+               // Se encontrou os períodos, processar dados dos estudantes
+               if (isDataSection && line.trim()) {
+                   // Pular linhas de cabeçalho
+                   if (line.includes('ESTUDANTES') || line.includes('PERÍODO') || 
+                       line.includes('FREQUÊNCIA') || line.includes('SITUAÇÃO') ||
+                       line.includes('MÉDIA GERAL') || line.includes('RECUPERAÇÃO')) {
+                       continue;
+                   }
                    
-                   // Extrair primeira nota válida encontrada
-                   const gradeValues = gradesText.split(/\s+/).map(g => {
-                       const grade = parseFloat(g.replace(',', '.'));
-                       return isNaN(grade) ? null : grade;
-                   }).filter(g => g !== null && g >= 0 && g <= 10);
+                   // Tentar extrair dados do estudante - padrão mais flexível
+                   const cleanLine = line.replace(/\s+/g, ' ').trim();
                    
-                   if (gradeValues.length > 0) {
-                       students.push({
-                           id: `EST${students.length + 1}`,
-                           name: name,
-                           grades: [gradeValues[0]], // Usar primeira nota
-                           frequency: frequency
-                       });
+                   // Buscar padrões diferentes de linha de estudante
+                   let studentMatch = null;
+                   
+                   // Padrão 1: Nome seguido de notas e frequência
+                   studentMatch = cleanLine.match(/^([A-ZÁÊÍÓÚÂÃÕÇ][a-záêíóúâãõç\s]+[A-ZÁÊÍÓÚÂÃÕÇ\s]*?)\s+((?:\d+[,.]?\d*\s*)+).*?(Frequente|Infrequente).*?Cursando/i);
+                   
+                   // Padrão 2: Sem "Cursando"
+                   if (!studentMatch) {
+                       studentMatch = cleanLine.match(/^([A-ZÁÊÍÓÚÂÃÕÇ][a-záêíóúâãõç\s]+[A-ZÁÊÍÓÚÂÃÕÇ\s]*?)\s+((?:\d+[,.]?\d*\s*)+).*?(Frequente|Infrequente)/i);
+                   }
+                   
+                   // Padrão 3: Mais flexível
+                   if (!studentMatch) {
+                       studentMatch = cleanLine.match(/^([A-ZÁÊÍÓÚÂÃÕÇ][a-záêíóúâãõç\s]{3,50}?)\s+((?:\d+[,.]?\d*\s*){1,4}).*?(Frequente|Infrequente)/i);
+                   }
+                   
+                   // Padrão 4: Super flexível para debugging
+                   if (!studentMatch && cleanLine.length > 30) {
+                       studentMatch = cleanLine.match(/^([A-ZÁÊÍÓÚÂÃÕÇ][a-záêíóúâãõç\s]+)\s.*?(\d+[,.]?\d*)\s.*?(Frequente|Infrequente|Cursando)/i);
+                   }
+                   
+                   if (studentMatch) {
+                       console.log('Match encontrado:', studentMatch);
+                       const name = studentMatch[1].trim();
+                       const gradesText = studentMatch[2] || '';
+                       let frequency = studentMatch[3] || 'Frequente';
+                       
+                       // Limpar frequency
+                       if (frequency.toLowerCase().includes('infrequente')) {
+                           frequency = 'Infrequente';
+                       } else {
+                           frequency = 'Frequente';
+                       }
+                       
+                       // Extrair todas as notas da linha
+                       const allGrades = gradesText.match(/\d+[,.]?\d*/g) || [];
+                       if (allGrades.length > 0) {
+                           const gradeValues = allGrades.map(g => {
+                               const grade = parseFloat(g.replace(',', '.'));
+                               return isNaN(grade) ? null : grade;
+                           }).filter(g => g !== null && g >= 0 && g <= 10);
+                           
+                           if (gradeValues.length > 0) {
+                               // Usar a nota do período selecionado ou a primeira disponível
+                               let gradeToUse = gradeValues[0]; // padrão: primeira nota
+                               
+                               if (periodColumns.length > 0) {
+                                   const periodIndex = periodColumns.indexOf(selectedPeriod);
+                                   if (periodIndex >= 0 && periodIndex < gradeValues.length) {
+                                       gradeToUse = gradeValues[periodIndex];
+                                   }
+                               }
+                               
+                               students.push({
+                                   id: `EST${students.length + 1}`,
+                                   name: name,
+                                   grades: [gradeToUse],
+                                   frequency: frequency,
+                                   period: selectedPeriod
+                               });
+                               
+                               console.log('Estudante adicionado:', {name, grade: gradeToUse, frequency});
+                           }
+                       }
                    }
                }
            }
            
+           // Se não encontrou nada com o método principal, tentar método alternativo
+           if (students.length === 0) {
+               console.log('Tentando método alternativo...');
+               return extractStudentsAlternativeMethod(text);
+           }
+           
+           console.log('Total de estudantes extraídos:', students.length);
+           return students;
+       }
+
+       function extractStudentsAlternativeMethod(text) {
+           const students = [];
+           const lines = text.split('\n');
+           
+           console.log('Método alternativo - analisando linhas...');
+           
+           for (let i = 0; i < lines.length; i++) {
+               const line = lines[i];
+               
+               // Método mais simples: procurar por qualquer linha com nome e números
+               if (line.length > 20 && /[A-Z]/.test(line) && /\d/.test(line)) {
+                   // Tentar encontrar nome no início da linha
+                   const nameMatch = line.match(/^([A-ZÁÊÍÓÚÂÃÕÇ][a-záêíóúâãõç\s]+[A-ZÁÊÍÓÚÂÃÕÇ]*)/);
+                   if (nameMatch) {
+                       const name = nameMatch[1].trim();
+                       
+                       // Procurar por números que parecem notas
+                       const numbers = line.match(/\b\d{1,2}[,.]?\d?\b/g);
+                       if (numbers) {
+                           const validGrades = numbers.map(n => {
+                               const grade = parseFloat(n.replace(',', '.'));
+                               return grade >= 0 && grade <= 10 ? grade : null;
+                           }).filter(g => g !== null);
+                           
+                           if (validGrades.length > 0) {
+                               // Determinar frequência
+                               const frequency = line.toLowerCase().includes('infrequente') ? 'Infrequente' : 'Frequente';
+                               
+                               students.push({
+                                   id: `EST${students.length + 1}`,
+                                   name: name,
+                                   grades: [validGrades[0]], // usar primeira nota válida
+                                   frequency: frequency
+                               });
+                               
+                               console.log('Método alternativo - estudante:', {name, grade: validGrades[0], frequency});
+                           }
+                       }
+                   }
+               }
+           }
+           
+           console.log('Método alternativo - total extraído:', students.length);
            return students;
        }
 
