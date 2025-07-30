@@ -6,7 +6,6 @@
     <title>Sistema de Notas - ECIT Henrique Fernandes de Farias</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -71,7 +70,6 @@
             border: 1px solid #333333;
             border-radius: 12px;
             padding: 2rem;
-            text-align: left;
             backdrop-filter: blur(20px);
         }
 
@@ -85,7 +83,7 @@
 
         .instruction-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
@@ -101,7 +99,6 @@
             border-radius: 8px;
             border: 1px solid #444444;
             min-height: 140px;
-            justify-content: flex-start;
         }
 
         .step {
@@ -116,13 +113,6 @@
             font-weight: 600;
             font-size: 1rem;
             flex-shrink: 0;
-        }
-
-        .instruction-item .content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
         }
 
         .instruction-item h4 {
@@ -160,139 +150,6 @@
             border-radius: 12px;
             padding: 2rem;
             backdrop-filter: blur(20px);
-        }
-
-        .input-type-selector {
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .type-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .type-btn {
-            background: rgba(30, 30, 30, 0.8);
-            color: #cccccc;
-            border: 1px solid #444444;
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            min-width: 180px;
-        }
-
-        .type-btn:hover {
-            background: rgba(40, 40, 40, 0.8);
-            border-color: #666666;
-        }
-
-        .type-btn.active {
-            background: rgba(60, 165, 250, 0.2);
-            border-color: #60a5fa;
-            color: #60a5fa;
-        }
-
-        .pdf-converter {
-            background: rgba(20, 20, 20, 0.8);
-            border: 1px solid #333333;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            backdrop-filter: blur(20px);
-            display: block;
-        }
-
-        .pdf-converter.hidden {
-            display: none;
-        }
-
-        .converter-title {
-            text-align: center;
-            color: #ffffff;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .converter-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .converter-btn {
-            background: rgba(34, 197, 94, 0.2);
-            color: #22c55e;
-            border: 1px solid #22c55e;
-            padding: 0.8rem 1.5rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .converter-btn:hover {
-            background: rgba(34, 197, 94, 0.3);
-            border-color: #16a34a;
-        }
-
-        .period-selector {
-            background: rgba(20, 20, 20, 0.8);
-            border: 1px solid #333333;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            backdrop-filter: blur(20px);
-            display: block;
-        }
-
-        .period-selector.hidden {
-            display: none;
-        }
-
-        .period-title {
-            text-align: center;
-            color: #ffffff;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .period-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-        }
-
-        .period-btn {
-            background: rgba(30, 30, 30, 0.8);
-            color: #cccccc;
-            border: 1px solid #444444;
-            padding: 0.8rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .period-btn:hover {
-            background: rgba(40, 40, 40, 0.8);
-            border-color: #666666;
-        }
-
-        .period-btn.active {
-            background: rgba(74, 222, 128, 0.2);
-            border-color: #4ade80;
-            color: #4ade80;
         }
 
         .upload-area {
@@ -473,7 +330,6 @@
             cursor: pointer;
             font-weight: 500;
             transition: all 0.2s ease;
-            align-self: flex-start;
         }
 
         .add-student-btn:hover {
@@ -606,7 +462,6 @@
             color: #ff4757;
             display: none;
             margin-bottom: 1rem;
-            white-space: pre-line;
         }
 
         .success {
@@ -697,7 +552,7 @@
 
         @media (max-width: 1200px) {
             .instruction-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: 1fr;
             }
         }
 
@@ -714,30 +569,12 @@
                 font-size: 1.2rem;
             }
 
-            .type-buttons {
-                flex-direction: column;
-                gap: 0.8rem;
-            }
-
-            .type-btn {
-                min-width: auto;
-                padding: 0.8rem 1.5rem;
-            }
-
-            .period-buttons {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
 
             .bottom-stats {
                 grid-template-columns: repeat(3, 1fr);
-            }
-
-            .instruction-grid {
-                grid-template-columns: 1fr;
             }
 
             .instruction-item {
@@ -749,10 +586,6 @@
                 width: 30px;
                 height: 30px;
                 font-size: 0.9rem;
-            }
-
-            .converter-actions {
-                flex-direction: column;
             }
         }
 
@@ -782,80 +615,45 @@
             <h1>SISTEMA DE NOTAS</h1>
             <h2>ECIT HENRIQUE FERNANDES DE FARIAS</h2>
             <div class="description">
-                <p>Sistema automatizado para análise de desempenho acadêmico. Escolha entre upload de PDF do SIAGE (com conversão automática para Excel) ou planilha Excel/CSV. O sistema processará automaticamente os dados dos estudantes incluindo notas, frequência e calculará todas as estatísticas necessárias para relatórios educacionais.</p>
+                <p>Sistema automatizado para análise de desempenho acadêmico. Faça upload de uma planilha Excel/CSV ou adicione dados manualmente. O sistema calculará automaticamente todas as estatísticas necessárias para relatórios educacionais.</p>
                 
                 <div class="instructions">
                     <h3>Como usar:</h3>
                     <div class="instruction-grid">
                         <div class="instruction-item">
                             <span class="step">1</span>
-                            <div class="content">
-                                <h4>PDF do SIAGE</h4>
-                                <p>Upload do PDF → Converte automaticamente para Excel → Download da planilha convertida</p>
+                            <div>
+                                <h4>Planilha Excel/CSV</h4>
+                                <p>Formato: Coluna 1: ID, Coluna 2: Nome, Colunas 3+: Notas, Última coluna: Frequência (Frequente/Infrequente - opcional)</p>
                             </div>
                         </div>
                         <div class="instruction-item">
                             <span class="step">2</span>
-                            <div class="content">
-                                <h4>Planilha Excel/CSV</h4>
-                                <p>Formato: Coluna 1: ID, Coluna 2: Nome, Colunas 3+: Notas, Última coluna: Frequência (opcional)</p>
+                            <div>
+                                <h4>Entrada Manual</h4>
+                                <p>Adicione estudantes individualmente com ID, nome, nota e status de frequência</p>
                             </div>
                         </div>
                         <div class="instruction-item">
                             <span class="step">3</span>
-                            <div class="content">
-                                <h4>Entrada Manual</h4>
-                                <p>Adicione estudantes individualmente: período, ID, nome, nota e status de frequência</p>
-                            </div>
-                        </div>
-                        <div class="instruction-item">
-                            <span class="step">4</span>
-                            <div class="content">
-                                <h4>Análise Completa</h4>
-                                <p>Sistema gera automaticamente: aprovação, frequência, médias e indicadores SEE-PB</p>
+                            <div>
+                                <h4>Análise Automática</h4>
+                                <p>Sistema gera relatórios completos: aprovação, frequência, médias e indicadores SEE-PB</p>
                             </div>
                         </div>
                     </div>
-                    <p class="note">📄 <strong>PDF do SIAGE:</strong> Conversão automática para Excel com dados extraídos do boletim. Baixe a planilha convertida e faça upload novamente para análise. 📊 <strong>Planilhas:</strong> Use formato tradicional, opcionalmente inclua coluna de frequência ("Frequente"/"Infrequente"). ✏️ <strong>Manual:</strong> Controle total sobre cada entrada de dados.</p>
+                    <p class="note">📊 <strong>Planilhas:</strong> Use formato Excel ou CSV com colunas organizadas. 📝 <strong>Entrada Manual:</strong> Controle total sobre cada dado inserido. 📈 <strong>Relatórios:</strong> Análise completa automatizada.</p>
                 </div>
             </div>
         </div>
 
         <div class="main-content">
             <div class="upload-section">
-                <div class="input-type-selector">
-                    <div class="type-buttons">
-                        <button class="type-btn active" id="pdfBtn" data-type="pdf">📄 PDF do SIAGE</button>
-                        <button class="type-btn" id="spreadsheetBtn" data-type="spreadsheet">📊 Planilha Excel/CSV</button>
-                    </div>
-                </div>
-
-                <div class="pdf-converter" id="pdfConverter">
-                    <div class="converter-title">🔄 Conversor PDF → Excel</div>
-                    <div class="converter-actions">
-                        <button class="converter-btn" id="convertBtn">📄 Converter PDF para Excel</button>
-                        <a class="converter-btn" id="downloadBtn" href="#" download="boletim_convertido.xlsx" style="display: none;">💾 Baixar Excel Convertido</a>
-                    </div>
-                    <p style="text-align: center; color: #888; margin-top: 1rem; font-size: 0.9rem;">
-                        Após converter e baixar, faça upload da planilha Excel gerada para análise completa.
-                    </p>
-                </div>
-
-                <div class="period-selector hidden" id="periodSelector">
-                    <div class="period-title">📅 Selecione o Período para Análise:</div>
-                    <div class="period-buttons">
-                        <button class="period-btn active" data-period="1">1º Período</button>
-                        <button class="period-btn" data-period="2">2º Período</button>
-                        <button class="period-btn" data-period="3">3º Período</button>
-                        <button class="period-btn" data-period="4">4º Período</button>
-                    </div>
-                </div>
-
                 <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">📄</div>
-                    <div class="upload-text" id="uploadText">Clique para selecionar seu PDF do SIAGE para conversão</div>
-                    <div class="upload-subtext" id="uploadSubtext">Primeiro vamos converter para Excel, depois analisar</div>
-                    <input type="file" id="fileInput" accept=".pdf">
+                    <div class="upload-icon">📊</div>
+                    <div class="upload-text">Clique para selecionar ou arraste sua planilha aqui</div>
+                    <div class="upload-subtext">Suporte para arquivos .xlsx, .xls e .csv</div>
+                    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
                 </div>
 
                 <div class="messages">
@@ -890,233 +688,168 @@
                         <div class="preview-title">✏️ Entrada Manual de Dados</div>
                         <div class="input-grid">
                             <div class="input-group">
-                                <label class="input-label">Período das Notas</label>
-                                <select class="input-field" id="studentPeriod">
-                                    <option value="1">1º Período</option>
-                                    <option value="2">2º Período</option>
-                                    <option value="3">3º Período</option>
-                                    <option value="4">4º Período</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
                                 <label class="input-label">ID do Estudante</label>
                                 <input type="text" class="input-field" id="studentId" placeholder="Ex: 001">
                             </div>
                             <div class="input-group">
                                 <label class="input-label">Nome do Estudante</label>
                                 <input type="text" class="input-field" id="studentName" placeholder="Ex: João Silva">
-                           </div>
-                           <div class="input-group">
-                               <label class="input-label">Nota do Período (0-10)</label>
-                               <input type="number" class="input-field" id="studentGrade" placeholder="Ex: 8.5" min="0" max="10" step="0.1">
-                           </div>
-                           <div class="input-group">
-                               <label class="input-label">Frequência</label>
-                               <select class="input-field" id="studentFrequency">
-                                   <option value="Frequente">Frequente</option>
-                                   <option value="Infrequente">Infrequente</option>
-                               </select>
-                           </div>
-                           <div class="input-group">
-                               <button class="add-student-btn" id="addStudent">Adicionar Estudante</button>
-                           </div>
-                       </div>
-                       <div class="student-list" id="studentList"></div>
-                   </div>
-               </div>
-           </div>
-       </div>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Nota (0-10)</label>
+                                <input type="number" class="input-field" id="studentGrade" placeholder="Ex: 8.5" min="0" max="10" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Frequência</label>
+                                <select class="input-field" id="studentFrequency">
+                                    <option value="Frequente">Frequente</option>
+                                    <option value="Infrequente">Infrequente</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <button class="add-student-btn" id="addStudent">Adicionar Estudante</button>
+                            </div>
+                        </div>
+                        <div class="student-list" id="studentList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-       <div class="results" id="results">
-           <div class="stats-section">
-               <div class="section-title">📊 Análise Geral de Desempenho</div>
-               <div class="stats-grid">
-                   <div class="stat-card">
-                       <div class="stat-value" id="passRate">0%</div>
-                       <div class="stat-label">Estudantes ≥ 7.0</div>
-                   </div>
-                   <div class="stat-card">
-                       <div class="stat-value" id="failRate">0%</div>
-                       <div class="stat-label">Estudantes < 7.0</div>
-                   </div>
-                   <div class="stat-card">
-                       <div class="stat-value" id="avgGrade">0.0</div>
-                       <div class="stat-label">Média da Turma</div>
-                   </div>
-                   <div class="stat-card">
-                       <div class="stat-value" id="lowGrades">0%</div>
-                       <div class="stat-label">Notas < 5.0</div>
-                   </div>
-                   <div class="stat-card">
-                       <div class="stat-value" id="frequentStudents">0%</div>
-                       <div class="stat-label">Frequentes</div>
-                   </div>
-                   <div class="stat-card">
-                       <div class="stat-value" id="infrequentStudents">0%</div>
-                       <div class="stat-label">Infrequentes</div>
-                   </div>
-               </div>
-           </div>
+        <div class="results" id="results">
+            <div class="stats-section">
+                <div class="section-title">📊 Análise Geral de Desempenho</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="passRate">0%</div>
+                        <div class="stat-label">Estudantes ≥ 7.0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="failRate">0%</div>
+                        <div class="stat-label">Estudantes < 7.0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgGrade">0.0</div>
+                        <div class="stat-label">Média da Turma</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="lowGrades">0%</div>
+                        <div class="stat-label">Notas < 5.0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="frequentStudents">0%</div>
+                        <div class="stat-label">Frequentes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="infrequentStudents">0%</div>
+                        <div class="stat-label">Infrequentes</div>
+                    </div>
+                </div>
+            </div>
 
-           <div class="stats-section">
-               <div class="section-title">📈 Indicadores SEE-PB (CREGE)</div>
-               <div class="stats-grid">
-                   <div class="stat-card">
-                       <div class="stat-value" id="approvalIndex">0%</div>
-                       <div class="stat-label">Índice de Aprovação</div>
-                   </div>
-                   <div class="stat-card">
-                       <div class="stat-value" id="reprobationRisk">0%</div>
-                       <div class="stat-label">Risco de Reprovação</div>
-                   </div>
-                   <div class="stat-card">
-                       <div class="stat-value" id="schoolAverage">0.0</div>
-                       <div class="stat-label">Média Geral da Escola</div>
-                   </div>
-                   <div class="stat-card">
-                       <div class="stat-value" id="criticalStudents">0%</div>
-                       <div class="stat-label">Estudantes em Situação Crítica</div>
-                   </div>
-               </div>
-           </div>
+            <div class="stats-section">
+                <div class="section-title">📈 Indicadores SEE-PB (CREGE)</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="approvalIndex">0%</div>
+                        <div class="stat-label">Índice de Aprovação</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="reprobationRisk">0%</div>
+                        <div class="stat-label">Risco de Reprovação</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="schoolAverage">0.0</div>
+                        <div class="stat-label">Média Geral da Escola</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="criticalStudents">0%</div>
+                        <div class="stat-label">Estudantes em Situação Crítica</div>
+                    </div>
+                </div>
+            </div>
 
-           <div class="stats-section">
-               <div class="section-title">🎯 Detalhamento por Faixas de Desempenho</div>
-               <div class="stats-grid">
-                   <div class="stat-card">
-                       <div class="stat-value" id="excellentStudents">0%</div>
-                       <div class="stat-label">Excelente (9.0-10.0)</div>
-                   </div>
-                   <div class="stat-card">
-                       <div class="stat-value" id="goodStudents">0%</div>
-                       <div class="stat-label">Bom (7.0-8.9)</div>
-                   </div>
-                   <div class="stat-card">
-                       <div class="stat-value" id="regularStudents">0%</div>
-                       <div class="stat-label">Regular (5.0-6.9)</div>
-                   </div>
-                   <div class="stat-card">
-                       <div class="stat-value" id="insufficientStudents">0%</div>
-                       <div class="stat-label">Insuficiente (0-4.9)</div>
-                   </div>
-               </div>
-           </div>
-       </div>
+            <div class="stats-section">
+                <div class="section-title">🎯 Detalhamento por Faixas de Desempenho</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="excellentStudents">0%</div>
+                        <div class="stat-label">Excelente (9.0-10.0)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="goodStudents">0%</div>
+                        <div class="stat-label">Bom (7.0-8.9)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="regularStudents">0%</div>
+                        <div class="stat-label">Regular (5.0-6.9)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="insufficientStudents">0%</div>
+                        <div class="stat-label">Insuficiente (0-4.9)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-       <div class="bottom-stats">
-           <div class="bottom-stat">
-               <div class="bottom-stat-number" id="totalStudents">0</div>
-               <div class="bottom-stat-label">Total de Estudantes</div>
-           </div>
-           <div class="bottom-stat">
-               <div class="bottom-stat-number" id="approvedCount">0%</div>
-               <div class="bottom-stat-label">Aprovados</div>
-           </div>
-           <div class="bottom-stat">
-               <div class="bottom-stat-number" id="reprovedCount">0%</div>
-               <div class="bottom-stat-label">Reprovados</div>
-           </div>
-           <div class="bottom-stat">
-               <div class="bottom-stat-number" id="lowGradeCount">0%</div>
-               <div class="bottom-stat-label">Nota < 5.0</div>
-           </div>
-           <div class="bottom-stat">
-               <div class="bottom-stat-number" id="frequentCount">0%</div>
-               <div class="bottom-stat-label">Frequentes</div>
-           </div>
-           <div class="bottom-stat">
-               <div class="bottom-stat-number" id="infrequentCount">0%</div>
-               <div class="bottom-stat-label">Infrequentes</div>
-           </div>
-       </div>
+        <div class="bottom-stats">
+            <div class="bottom-stat">
+                <div class="bottom-stat-number" id="totalStudents">0</div>
+                <div class="bottom-stat-label">Total de Estudantes</div>
+            </div>
+            <div class="bottom-stat">
+                <div class="bottom-stat-number" id="approvedCount">0%</div>
+                <div class="bottom-stat-label">Aprovados</div>
+            </div>
+            <div class="bottom-stat">
+                <div class="bottom-stat-number" id="reprovedCount">0%</div>
+                <div class="bottom-stat-label">Reprovados</div>
+            </div>
+            <div class="bottom-stat">
+                <div class="bottom-stat-number" id="lowGradeCount">0%</div>
+                <div class="bottom-stat-label">Nota < 5.0</div>
+            </div>
+            <div class="bottom-stat">
+                <div class="bottom-stat-number" id="frequentCount">0%</div>
+                <div class="bottom-stat-label">Frequentes</div>
+            </div>
+            <div class="bottom-stat">
+                <div class="bottom-stat-number" id="infrequentCount">0%</div>
+                <div class="bottom-stat-label">Infrequentes</div>
+            </div>
+        </div>
 
-       <div class="footer">
-           <p>Desenvolvido pelo Professor <a href="https://www.viniciuslisboa.com.br" target="_blank">Vinícius Lisboa</a></p>
-           <p>ECIT Henrique Fernandes de Farias</p>
-       </div>
-   </div>
+        <div class="footer">
+            <p>Desenvolvido pelo Professor <a href="https://www.viniciuslisboa.com.br" target="_blank">Vinícius Lisboa</a></p>
+            <p>ECIT Henrique Fernandes de Farias</p>
+        </div>
+    </div>
 
-   <script>
-       const uploadArea = document.getElementById('uploadArea');
-       const fileInput = document.getElementById('fileInput');
-       const errorMsg = document.getElementById('errorMsg');
-       const successMsg = document.getElementById('successMsg');
-       const fileInfo = document.getElementById('fileInfo');
-       const results = document.getElementById('results');
-       const dataPreview = document.getElementById('dataPreview');
-       const manualInput = document.getElementById('manualInput');
-       const toggleManual = document.getElementById('toggleManual');
-       const addStudentBtn = document.getElementById('addStudent');
-       const pdfConverter = document.getElementById('pdfConverter');
-       const convertBtn = document.getElementById('convertBtn');
-       const downloadBtn = document.getElementById('downloadBtn');
-       const periodSelector = document.getElementById('periodSelector');
-       const uploadText = document.getElementById('uploadText');
-       const uploadSubtext = document.getElementById('uploadSubtext');
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const errorMsg = document.getElementById('errorMsg');
+        const successMsg = document.getElementById('successMsg');
+        const fileInfo = document.getElementById('fileInfo');
+        const results = document.getElementById('results');
+        const dataPreview = document.getElementById('dataPreview');
+        const manualInput = document.getElementById('manualInput');
+        const toggleManual = document.getElementById('toggleManual');
+        const addStudentBtn = document.getElementById('addStudent');
 
-       let studentsData = [];
-       let manualMode = false;
-       let inputType = 'pdf';
-       let selectedPeriod = 1;
-       let convertedData = null;
+        let studentsData = [];
+        let manualMode = false;
 
-       // Configure PDF.js
-       if (typeof pdfjsLib !== 'undefined') {
-           pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-       }
-
-       // Type selection buttons
-       document.querySelectorAll('.type-btn').forEach(btn => {
-           btn.addEventListener('click', (e) => {
-               document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
-               btn.classList.add('active');
-               inputType = btn.dataset.type;
-               updateInterface();
-           });
-       });
-
-       // Period selection buttons
-       document.querySelectorAll('.period-btn').forEach(btn => {
-           btn.addEventListener('click', (e) => {
-               document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-               btn.classList.add('active');
-               selectedPeriod = parseInt(btn.dataset.period);
-           });
-       });
-
-       // Convert button
-       convertBtn.addEventListener('click', () => {
-           fileInput.click();
-       });
-
-       function updateInterface() {
-           if (inputType === 'pdf') {
-               pdfConverter.classList.remove('hidden');
-               periodSelector.classList.add('hidden');
-               fileInput.accept = '.pdf';
-               uploadText.textContent = 'Clique para selecionar seu PDF do SIAGE para conversão';
-               uploadSubtext.textContent = 'Primeiro vamos converter para Excel, depois analisar';
-               document.querySelector('.upload-icon').textContent = '📄';
-           } else {
-               pdfConverter.classList.add('hidden');
-               periodSelector.classList.add('hidden');
-               fileInput.accept = '.xlsx,.xls,.csv';
-               uploadText.textContent = 'Clique para selecionar ou arraste sua planilha aqui';
-               uploadSubtext.textContent = 'Suporte para arquivos .xlsx, .xls e .csv';
-               document.querySelector('.upload-icon').textContent = '📊';
-           }
-       }
-
-       // Upload area interactions
-       uploadArea.addEventListener('click', () => fileInput.click());
-       uploadArea.addEventListener('dragover', (e) => {
-           e.preventDefault();
-           uploadArea.classList.add('dragover');
-       });
-       uploadArea.addEventListener('dragleave', () => {
-           uploadArea.classList.remove('dragover');
-       });
-       uploadArea.addEventListener('drop', (e) => {
+        // Upload area interactions
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
            e.preventDefault();
            uploadArea.classList.remove('dragover');
            const files = e.dataTransfer.files;
@@ -1144,7 +877,6 @@
 
        addStudentBtn.addEventListener('click', addStudent);
 
-       // Enter key para adicionar estudante
        document.getElementById('studentGrade').addEventListener('keypress', (e) => {
            if (e.key === 'Enter') {
                addStudent();
@@ -1204,7 +936,6 @@
            const id = document.getElementById('studentId').value.trim();
            const name = document.getElementById('studentName').value.trim();
            const gradeValue = document.getElementById('studentGrade').value.trim();
-           const period = document.getElementById('studentPeriod').value;
            const frequency = document.getElementById('studentFrequency').value;
            
            if (!name || !gradeValue) {
@@ -1218,26 +949,22 @@
                return;
            }
            
-           // Adicionar estudante
            const student = {
                id: id || `EST${studentsData.length + 1}`,
                name: name,
                grades: [grade],
-               period: period,
                frequency: frequency
            };
            
            studentsData.push(student);
            
-           // Limpar campos
            document.getElementById('studentId').value = '';
            document.getElementById('studentName').value = '';
            document.getElementById('studentGrade').value = '';
            
-           // Atualizar interface
            updateStudentList();
            calculateStatistics(studentsData, 'Entrada Manual');
-           showSuccess(`Estudante ${name} adicionado! Nota: ${grade} | ${frequency} | ${period}º período`);
+           showSuccess(`Estudante ${name} adicionado! Nota: ${grade} | ${frequency}`);
        }
 
        function updateStudentList() {
@@ -1279,188 +1006,30 @@
            const fileName = file.name;
            const fileExtension = fileName.split('.').pop().toLowerCase();
 
-           if (inputType === 'pdf' && fileExtension !== 'pdf') {
-               showError('Para o modo PDF do SIAGE, selecione apenas arquivos PDF');
-               return;
-           }
-
-           if (inputType === 'spreadsheet' && !['xlsx', 'xls', 'csv'].includes(fileExtension)) {
-               showError('Para o modo planilha, use arquivos .xlsx, .xls ou .csv');
+           if (!['xlsx', 'xls', 'csv'].includes(fileExtension)) {
+               showError('Formato de arquivo não suportado. Use .xlsx, .xls ou .csv');
                return;
            }
 
            const reader = new FileReader();
            reader.onload = (e) => {
                try {
-                   if (inputType === 'pdf') {
-                       convertPDFToExcel(e.target.result, fileName);
+                   let data;
+                   if (fileExtension === 'csv') {
+                       data = parseCSV(e.target.result);
                    } else {
-                       let data;
-                       if (fileExtension === 'csv') {
-                           data = parseCSV(e.target.result);
-                       } else {
-                           data = parseExcel(e.target.result);
-                       }
-                       processData(data, fileName);
+                       data = parseExcel(e.target.result);
                    }
+                   processData(data, fileName);
                } catch (error) {
                    showError('Erro ao processar arquivo: ' + error.message);
                }
            };
 
-           if (inputType === 'pdf') {
-               reader.readAsArrayBuffer(file);
-           } else if (fileExtension === 'csv') {
+           if (fileExtension === 'csv') {
                reader.readAsText(file);
            } else {
                reader.readAsArrayBuffer(file);
-           }
-       }
-
-       async function convertPDFToExcel(arrayBuffer, fileName) {
-           try {
-               if (typeof pdfjsLib === 'undefined') {
-                   showError('Biblioteca PDF.js não carregada. Recarregue a página e tente novamente.');
-                   return;
-               }
-
-               showSuccess('Convertendo PDF para Excel...');
-               
-               const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-               let allText = '';
-               
-               for (let i = 1; i <= pdf.numPages; i++) {
-                   const page = await pdf.getPage(i);
-                   const textContent = await page.getTextContent();
-                   const pageText = textContent.items.map(item => item.str).join(' ');
-                   allText += pageText + '\n';
-               }
-               
-               console.log('Texto extraído do PDF (primeiros 500 chars):', allText.substring(0, 500));
-               
-               const excelData = extractDataForExcel(allText);
-               
-               if (excelData.length === 0) {
-                   showError(`Não foi possível extrair dados do PDF para conversão.
-
-Possíveis soluções:
-1. Verifique se é um boletim do SIAGE oficial
-2. Tente usar entrada manual
-3. Converta o PDF manualmente para Excel
-
-Texto encontrado: "${allText.substring(0, 200)}..."`);
-                   return;
-               }
-               
-               createExcelFile(excelData, fileName);
-               
-           } catch (error) {
-               console.error('Erro na conversão:', error);
-               showError('Erro ao converter PDF: ' + error.message + '. Tente usar entrada manual como alternativa.');
-           }
-       }
-
-       function extractDataForExcel(text) {
-           const students = [];
-           const lines = text.split('\n');
-           
-           console.log('Extraindo dados para Excel...');
-           
-           for (let i = 0; i < lines.length; i++) {
-               const line = lines[i];
-               
-               // Procurar por linhas que parecem conter dados de estudantes
-               if (line.length > 30 && /[A-Z]/.test(line) && /\d/.test(line)) {
-                   
-                   // Padrão flexível para capturar nome
-                   const nameMatch = line.match(/^([A-ZÁÊÍÓÚÂÃÕÇ][a-záêíóúâãõç\s]+[A-ZÁÊÍÓÚÂÃÕÇ\s]*)/);
-                   if (nameMatch) {
-                       const name = nameMatch[1].trim();
-                       
-                       // Extrair todos os números que parecem ser notas
-                       const numbers = line.match(/\b\d{1,2}[,.]?\d?\b/g);
-                       if (numbers) {
-                           const validGrades = numbers.map(n => {
-                               const grade = parseFloat(n.replace(',', '.'));
-                               return grade >= 0 && grade <= 10 ? grade : null;
-                           }).filter(g => g !== null);
-                           
-                           if (validGrades.length > 0) {
-                               // Detectar frequência
-                               const frequency = line.toLowerCase().includes('infrequente') ? 'Infrequente' : 'Frequente';
-                               
-                               // Criar linha para Excel
-                               const studentRow = [
-                                   students.length + 1, // ID
-                                   name, // Nome
-                                   ...validGrades, // Notas
-                                   frequency // Frequência
-                               ];
-                               
-                               students.push(studentRow);
-                               console.log('Estudante extraído:', {name, grades: validGrades, frequency});
-                           }
-                       }
-                   }
-               }
-           }
-           
-           // Adicionar cabeçalho
-           if (students.length > 0) {
-               const maxGrades = Math.max(...students.map(s => s.length - 3)); // -3 para ID, Nome, Frequência
-               const headers = ['ID', 'Nome'];
-               for (let i = 1; i <= maxGrades; i++) {
-                   headers.push(`Nota ${i}`);
-               }
-               headers.push('Frequência');
-               
-               return [headers, ...students];
-           }
-           
-           return [];
-       }
-
-       function createExcelFile(data, originalFileName) {
-           try {
-               if (typeof XLSX === 'undefined') {
-                   showError('Biblioteca XLSX não carregada. Recarregue a página.');
-                   return;
-               }
-
-               const workbook = XLSX.utils.book_new();
-               const worksheet = XLSX.utils.aoa_to_sheet(data);
-               
-               // Ajustar largura das colunas
-               const colWidths = [];
-               for (let i = 0; i < data[0].length; i++) {
-                   const maxLength = Math.max(...data.map(row => 
-                       row[i] ? row[i].toString().length : 0
-                   ));
-                   colWidths.push({ width: Math.min(Math.max(maxLength, 10), 30) });
-               }
-               worksheet['!cols'] = colWidths;
-               
-               XLSX.utils.book_append_sheet(workbook, worksheet, 'Boletim SIAGE');
-               
-               // Gerar arquivo
-               const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-               const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-               
-               // Criar link de download
-               const url = window.URL.createObjectURL(blob);
-               downloadBtn.href = url;
-               downloadBtn.download = originalFileName.replace('.pdf', '_convertido.xlsx');
-               downloadBtn.style.display = 'inline-block';
-               
-               convertedData = data;
-               
-               showSuccess(`PDF convertido com sucesso! ${data.length - 1} estudantes encontrados. 
-               
-Clique no botão "Baixar Excel Convertido" para baixar a planilha.
-Depois faça upload da planilha baixada para análise completa.`);
-               
-           } catch (error) {
-               showError('Erro ao criar arquivo Excel: ' + error.message);
            }
        }
 
@@ -1596,7 +1165,6 @@ Depois faça upload da planilha baixada para análise completa.`);
            const infrequentRate = Math.round((infrequentCount / totalStudents) * 100);
            const classAverage = Math.round((totalGradeSum / totalStudents) * 10) / 10;
 
-           // Atualizar interface principal
            document.getElementById('passRate').textContent = passRate + '%';
            document.getElementById('failRate').textContent = failRate + '%';
            document.getElementById('avgGrade').textContent = classAverage.toFixed(1);
@@ -1604,19 +1172,16 @@ Depois faça upload da planilha baixada para análise completa.`);
            document.getElementById('frequentStudents').textContent = frequentRate + '%';
            document.getElementById('infrequentStudents').textContent = infrequentRate + '%';
 
-           // Atualizar indicadores SEE-PB
            document.getElementById('approvalIndex').textContent = approvalIndex + '%';
            document.getElementById('reprobationRisk').textContent = reprobationRisk + '%';
            document.getElementById('schoolAverage').textContent = classAverage.toFixed(1);
            document.getElementById('criticalStudents').textContent = criticalRate + '%';
 
-           // Atualizar faixas de desempenho
            document.getElementById('excellentStudents').textContent = excellentRate + '%';
            document.getElementById('goodStudents').textContent = goodRate + '%';
            document.getElementById('regularStudents').textContent = regularRate + '%';
            document.getElementById('insufficientStudents').textContent = insufficientRate + '%';
 
-           // Atualizar estatísticas do rodapé
            document.getElementById('totalStudents').textContent = totalStudents;
            document.getElementById('approvedCount').textContent = passRate + '%';
            document.getElementById('reprovedCount').textContent = failRate + '%';
@@ -1628,9 +1193,6 @@ Depois faça upload da planilha baixada para análise completa.`);
            showSuccess(`Análise concluída! ${totalStudents} estudantes processados. Média geral: ${classAverage.toFixed(1)} | Frequentes: ${frequentRate}%`);
            results.style.display = 'block';
        }
-
-       // Initialize interface
-       updateInterface();
    </script>
 </body>
 </html>
