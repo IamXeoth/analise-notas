@@ -209,6 +209,191 @@
             margin-top: 2rem;
         }
 
+        .data-preview {
+            display: none;
+            margin-top: 1.5rem;
+        }
+
+        .preview-section {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid #333333;
+            border-radius: 12px;
+            padding: 1.5rem;
+            backdrop-filter: blur(20px);
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .data-table {
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(30, 30, 30, 0.8);
+            border-radius: 8px;
+            border: 1px solid #444444;
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 80px 200px 1fr;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(40, 40, 40, 0.8);
+            border-bottom: 1px solid #444444;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #ffffff;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 80px 200px 1fr;
+            gap: 1rem;
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #333333;
+            font-size: 0.85rem;
+            color: #cccccc;
+        }
+
+        .table-row:hover {
+            background: rgba(50, 50, 50, 0.5);
+        }
+
+        .grades-list {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .grade-item {
+            background: rgba(100, 100, 100, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .manual-input {
+            display: none;
+            margin-top: 1.5rem;
+        }
+
+        .manual-section {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid #333333;
+            border-radius: 12px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .input-label {
+            color: #cccccc;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .input-field {
+            background: rgba(30, 30, 30, 0.8);
+            border: 1px solid #444444;
+            border-radius: 6px;
+            padding: 0.8rem;
+            color: #ffffff;
+            font-size: 0.9rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #666666;
+        }
+
+        .add-student-btn {
+            background: #444444;
+            color: #ffffff;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            align-self: flex-start;
+        }
+
+        .add-student-btn:hover {
+            background: #555555;
+        }
+
+        .manual-toggle {
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .toggle-btn {
+            background: rgba(30, 30, 30, 0.8);
+            color: #cccccc;
+            border: 1px solid #444444;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(40, 40, 40, 0.8);
+            border-color: #555555;
+        }
+
+        .student-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+
+        .student-item {
+            display: grid;
+            grid-template-columns: 80px 200px 1fr 50px;
+            gap: 1rem;
+            padding: 0.8rem;
+            background: rgba(30, 30, 30, 0.5);
+            border: 1px solid #444444;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            align-items: center;
+        }
+
+        .delete-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .delete-btn:hover {
+            background: #ff3838;
+        }
+
         .stats-section {
             background: rgba(20, 20, 20, 0.8);
             border: 1px solid #333333;
@@ -615,6 +800,48 @@
                         <div class="file-details" id="fileDetails"></div>
                     </div>
                 </div>
+
+                <div class="data-preview" id="dataPreview">
+                    <div class="preview-section">
+                        <div class="preview-title">📋 Dados Encontrados na Planilha</div>
+                        <div class="data-table">
+                            <div class="table-header">
+                                <div>ID</div>
+                                <div>Nome</div>
+                                <div>Notas</div>
+                            </div>
+                            <div id="dataTableBody"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="manual-toggle">
+                    <button class="toggle-btn" id="toggleManual">📝 Adicionar/Editar Dados Manualmente</button>
+                </div>
+
+                <div class="manual-input" id="manualInput">
+                    <div class="manual-section">
+                        <div class="preview-title">✏️ Entrada Manual de Dados</div>
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label class="input-label">ID do Estudante</label>
+                                <input type="text" class="input-field" id="studentId" placeholder="Ex: 001">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Nome do Estudante</label>
+                                <input type="text" class="input-field" id="studentName" placeholder="Ex: João Silva">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Notas (separadas por vírgula)</label>
+                                <input type="text" class="input-field" id="studentGrades" placeholder="Ex: 8.5, 7.0, 9.2">
+                            </div>
+                            <div class="input-group">
+                                <button class="add-student-btn" id="addStudent">Adicionar Estudante</button>
+                            </div>
+                        </div>
+                        <div class="student-list" id="studentList"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -674,6 +901,13 @@
         const successMsg = document.getElementById('successMsg');
         const fileInfo = document.getElementById('fileInfo');
         const results = document.getElementById('results');
+        const dataPreview = document.getElementById('dataPreview');
+        const manualInput = document.getElementById('manualInput');
+        const toggleManual = document.getElementById('toggleManual');
+        const addStudentBtn = document.getElementById('addStudent');
+
+        let studentsData = [];
+        let manualMode = false;
 
         // Upload area interactions
         uploadArea.addEventListener('click', () => fileInput.click());
@@ -699,12 +933,33 @@
             }
         });
 
+        toggleManual.addEventListener('click', () => {
+            manualMode = !manualMode;
+            if (manualMode) {
+                manualInput.style.display = 'block';
+                toggleManual.textContent = '📊 Voltar para Upload de Planilha';
+            } else {
+                manualInput.style.display = 'none';
+                toggleManual.textContent = '📝 Adicionar/Editar Dados Manualmente';
+            }
+        });
+
+        addStudentBtn.addEventListener('click', addStudent);
+
+        // Enter key para adicionar estudante
+        document.getElementById('studentGrades').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addStudent();
+            }
+        });
+
         function showError(message) {
             errorMsg.textContent = message;
             errorMsg.style.display = 'block';
             successMsg.style.display = 'none';
             results.style.display = 'none';
             fileInfo.style.display = 'none';
+            dataPreview.style.display = 'none';
         }
 
         function showSuccess(message) {
@@ -717,6 +972,104 @@
             document.getElementById('fileName').textContent = fileName;
             document.getElementById('fileDetails').textContent = `${studentCount} estudantes encontrados`;
             fileInfo.style.display = 'block';
+        }
+
+        function showDataPreview(students) {
+            const tableBody = document.getElementById('dataTableBody');
+            tableBody.innerHTML = '';
+            
+            students.forEach(student => {
+                const row = document.createElement('div');
+                row.className = 'table-row';
+                
+                const gradesHtml = student.grades.map(grade => 
+                    `<span class="grade-item">${grade.toFixed(1)}</span>`
+                ).join('');
+                
+                row.innerHTML = `
+                    <div>${student.id || 'N/A'}</div>
+                    <div>${student.name || 'Sem nome'}</div>
+                    <div class="grades-list">${gradesHtml}</div>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            dataPreview.style.display = 'block';
+        }
+
+        function addStudent() {
+            const id = document.getElementById('studentId').value.trim();
+            const name = document.getElementById('studentName').value.trim();
+            const gradesText = document.getElementById('studentGrades').value.trim();
+            
+            if (!name || !gradesText) {
+                showError('Por favor, preencha pelo menos o nome e as notas do estudante');
+                return;
+            }
+            
+            // Parse das notas
+            const grades = gradesText.split(',').map(g => {
+                const grade = parseFloat(g.trim().replace(',', '.'));
+                return isNaN(grade) ? null : grade;
+            }).filter(g => g !== null && g >= 0 && g <= 10);
+            
+            if (grades.length === 0) {
+                showError('Digite pelo menos uma nota válida (0-10)');
+                return;
+            }
+            
+            // Adicionar estudante
+            const student = {
+                id: id || `EST${studentsData.length + 1}`,
+                name: name,
+                grades: grades
+            };
+            
+            studentsData.push(student);
+            
+            // Limpar campos
+            document.getElementById('studentId').value = '';
+            document.getElementById('studentName').value = '';
+            document.getElementById('studentGrades').value = '';
+            
+            // Atualizar interface
+            updateStudentList();
+            calculateStatistics(studentsData, 'Entrada Manual');
+            showSuccess(`Estudante ${name} adicionado com sucesso!`);
+        }
+
+        function updateStudentList() {
+            const studentList = document.getElementById('studentList');
+            studentList.innerHTML = '';
+            
+            studentsData.forEach((student, index) => {
+                const item = document.createElement('div');
+                item.className = 'student-item';
+                
+                const gradesText = student.grades.map(g => g.toFixed(1)).join(', ');
+                
+                item.innerHTML = `
+                    <div>${student.id}</div>
+                    <div>${student.name}</div>
+                    <div>${gradesText}</div>
+                    <button class="delete-btn" onclick="removeStudent(${index})">✕</button>
+                `;
+                
+                studentList.appendChild(item);
+            });
+        }
+
+        function removeStudent(index) {
+            studentsData.splice(index, 1);
+            updateStudentList();
+            
+            if (studentsData.length > 0) {
+                calculateStatistics(studentsData, 'Entrada Manual');
+            } else {
+                results.style.display = 'none';
+                showSuccess('Todos os estudantes foram removidos');
+            }
         }
 
         function handleFile(file) {
@@ -815,6 +1168,8 @@
                 return;
             }
 
+            studentsData = students;
+            showDataPreview(students);
             calculateStatistics(students, fileName);
         }
 
