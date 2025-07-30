@@ -6,6 +6,7 @@
     <title>Sistema de Notas - ECIT Henrique Fernandes de Farias</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -21,13 +22,11 @@
             min-height: 100vh;
             padding: 2rem;
             line-height: 1.6;
-            position: relative;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            position: relative;
         }
 
         .header {
@@ -163,6 +162,92 @@
             backdrop-filter: blur(20px);
         }
 
+        .input-type-selector {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .type-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .type-btn {
+            background: rgba(30, 30, 30, 0.8);
+            color: #cccccc;
+            border: 1px solid #444444;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            min-width: 180px;
+        }
+
+        .type-btn:hover {
+            background: rgba(40, 40, 40, 0.8);
+            border-color: #666666;
+        }
+
+        .type-btn.active {
+            background: rgba(60, 165, 250, 0.2);
+            border-color: #60a5fa;
+            color: #60a5fa;
+        }
+
+        .period-selector {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid #333333;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(20px);
+            display: block;
+        }
+
+        .period-selector.hidden {
+            display: none;
+        }
+
+        .period-title {
+            text-align: center;
+            color: #ffffff;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .period-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .period-btn {
+            background: rgba(30, 30, 30, 0.8);
+            color: #cccccc;
+            border: 1px solid #444444;
+            padding: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .period-btn:hover {
+            background: rgba(40, 40, 40, 0.8);
+            border-color: #666666;
+        }
+
+        .period-btn.active {
+            background: rgba(74, 222, 128, 0.2);
+            border-color: #4ade80;
+            color: #4ade80;
+        }
+
         .upload-area {
             border: 2px dashed #444444;
             border-radius: 8px;
@@ -171,6 +256,10 @@
             transition: all 0.3s ease;
             cursor: pointer;
             background: rgba(30, 30, 30, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         .upload-area:hover {
@@ -184,20 +273,22 @@
         }
 
         .upload-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.7;
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.8;
         }
 
         .upload-text {
             font-size: 1.2rem;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.8rem;
             font-weight: 500;
+            text-align: center;
         }
 
         .upload-subtext {
-            color: #888888;
-            font-size: 0.9rem;
+            color: #737373;
+            font-size: 0.95rem;
+            text-align: center;
         }
 
         #fileInput {
@@ -269,6 +360,7 @@
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .grade-item {
@@ -370,7 +462,7 @@
 
         .student-item {
             display: grid;
-            grid-template-columns: 80px 200px 1fr 50px;
+            grid-template-columns: 60px 1fr 80px 80px 50px;
             gap: 1rem;
             padding: 0.8rem;
             background: rgba(30, 30, 30, 0.5);
@@ -378,6 +470,7 @@
             border-radius: 6px;
             margin-bottom: 0.5rem;
             align-items: center;
+            font-size: 0.85rem;
         }
 
         .delete-btn {
@@ -413,7 +506,7 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1rem;
         }
 
@@ -447,10 +540,12 @@
             letter-spacing: 0.05em;
         }
 
-        .stat-card:nth-child(1) .stat-value { color: #00ff88; }
-        .stat-card:nth-child(2) .stat-value { color: #ff4757; }
-        .stat-card:nth-child(3) .stat-value { color: #3742fa; }
-        .stat-card:nth-child(4) .stat-value { color: #ffa502; }
+        .stat-card:nth-child(1) .stat-value { color: #4ade80; }
+        .stat-card:nth-child(2) .stat-value { color: #f87171; }
+        .stat-card:nth-child(3) .stat-value { color: #60a5fa; }
+        .stat-card:nth-child(4) .stat-value { color: #fbbf24; }
+        .stat-card:nth-child(5) .stat-value { color: #22c55e; }
+        .stat-card:nth-child(6) .stat-value { color: #ef4444; }
 
         .messages {
             margin: 1rem 0;
@@ -498,7 +593,7 @@
 
         .bottom-stats {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 1rem;
             margin-top: 2rem;
         }
@@ -525,6 +620,8 @@
         .bottom-stat:nth-child(2) .bottom-stat-number { color: #00ff88; }
         .bottom-stat:nth-child(3) .bottom-stat-number { color: #ff4757; }
         .bottom-stat:nth-child(4) .bottom-stat-number { color: #ffa502; }
+        .bottom-stat:nth-child(5) .bottom-stat-number { color: #22c55e; }
+        .bottom-stat:nth-child(6) .bottom-stat-number { color: #ef4444; }
 
         .footer {
             text-align: center;
@@ -551,14 +648,6 @@
         }
 
         @media (max-width: 1200px) {
-            .container {
-                padding: 0 1rem;
-            }
-
-            .header h1 {
-                font-size: 3rem;
-            }
-
             .instruction-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -569,116 +658,49 @@
                 padding: 1rem;
             }
 
-            .header {
-                margin-bottom: 3rem;
-                padding: 1rem 0;
-            }
-
             .header h1 {
                 font-size: 2.5rem;
-                margin-bottom: 0.5rem;
             }
 
             .header h2 {
                 font-size: 1.2rem;
-                margin-bottom: 1.5rem;
             }
 
-            .description > p {
-                font-size: 1.1rem;
-                margin-bottom: 1.5rem;
+            .type-buttons {
+                flex-direction: column;
+                gap: 0.8rem;
             }
 
-            .instructions {
-                padding: 1.5rem;
+            .type-btn {
+                min-width: auto;
+                padding: 0.8rem 1.5rem;
             }
 
-            .instructions h3 {
-                font-size: 1.2rem;
-                margin-bottom: 1rem;
+            .period-buttons {
+                grid-template-columns: repeat(2, 1fr);
             }
-            
+
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 0.8rem;
             }
 
-            .stat-card {
-                padding: 1.2rem;
-            }
-
-            .stat-value {
-                font-size: 2rem;
-            }
-
-            .stat-label {
-                font-size: 0.8rem;
-            }
-            
             .bottom-stats {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 0.8rem;
-            }
-
-            .bottom-stat-number {
-                font-size: 1.5rem;
+                grid-template-columns: repeat(3, 1fr);
             }
 
             .instruction-grid {
                 grid-template-columns: 1fr;
-                gap: 0.8rem;
             }
 
             .instruction-item {
-                padding: 1.2rem 0.8rem;
-                gap: 0.8rem;
                 min-height: 120px;
+                padding: 1.2rem 0.8rem;
             }
 
             .step {
                 width: 30px;
                 height: 30px;
                 font-size: 0.9rem;
-            }
-
-            .instruction-item h4 {
-                font-size: 0.9rem;
-            }
-
-            .instruction-item p {
-                font-size: 0.85rem;
-            }
-
-            .upload-area {
-                padding: 2rem 1rem;
-            }
-
-            .upload-icon {
-                font-size: 2.5rem;
-                margin-bottom: 1rem;
-            }
-
-            .upload-text {
-                font-size: 1.1rem;
-            }
-
-            .upload-subtext {
-                font-size: 0.85rem;
-            }
-
-            .upload-section, .stats-section {
-                padding: 1.5rem;
-            }
-
-            .main-content {
-                gap: 1.5rem;
-                margin-bottom: 3rem;
-            }
-
-            .footer {
-                margin-top: 3rem;
-                padding-top: 1.5rem;
-                font-size: 0.85rem;
             }
         }
 
@@ -687,52 +709,16 @@
                 font-size: 2rem;
             }
 
-            .header h2 {
-                font-size: 1rem;
-            }
-
-            .description > p {
-                font-size: 1rem;
-            }
-
             .stats-grid {
                 grid-template-columns: 1fr;
-                gap: 0.8rem;
             }
 
             .bottom-stats {
-                grid-template-columns: 1fr;
-                gap: 0.8rem;
+                grid-template-columns: repeat(2, 1fr);
             }
 
-            .upload-area {
-                padding: 1.5rem 1rem;
-            }
-
-            .upload-text {
-                font-size: 1rem;
-            }
-
-            .instruction-item {
-                flex-direction: column;
-                text-align: center;
-                gap: 0.5rem;
-                min-height: 100px;
-                padding: 1rem 0.5rem;
-            }
-
-            .step {
-                align-self: center;
-                width: 25px;
-                height: 25px;
-                font-size: 0.8rem;
-            }
-
-            .instruction-item h4 {
-                font-size: 0.85rem;
-            }
-
-            .instruction-item p {
+            .student-item {
+                grid-template-columns: 50px 1fr 60px 70px 40px;
                 font-size: 0.8rem;
             }
         }
@@ -744,7 +730,7 @@
             <h1>SISTEMA DE NOTAS</h1>
             <h2>ECIT HENRIQUE FERNANDES DE FARIAS</h2>
             <div class="description">
-                <p>Sistema automatizado para análise de desempenho acadêmico</p>
+                <p>Sistema automatizado para análise de desempenho acadêmico. Escolha entre upload de PDF do SIAGE ou planilha Excel/CSV. O sistema processará automaticamente os dados dos estudantes incluindo notas, frequência e calculará todas as estatísticas necessárias para relatórios educacionais.</p>
                 
                 <div class="instructions">
                     <h3>Como usar:</h3>
@@ -752,44 +738,61 @@
                         <div class="instruction-item">
                             <span class="step">1</span>
                             <div class="content">
-                                <h4>Upload</h4>
-                                <p>Faça upload de uma planilha Excel (.xlsx, .xls) ou CSV</p>
+                                <h4>PDF do SIAGE</h4>
+                                <p>Selecione "PDF do SIAGE", escolha o período (1º, 2º, 3º ou 4º) e faça upload do boletim oficial</p>
                             </div>
                         </div>
                         <div class="instruction-item">
                             <span class="step">2</span>
                             <div class="content">
-                                <h4>Coluna 1:</h4>
-                                <p>ID/Número do estudante</p>
+                                <h4>Planilha Excel/CSV</h4>
+                                <p>Formato: Coluna 1: ID, Coluna 2: Nome, Colunas 3+: Notas, Última coluna: Frequência (opcional)</p>
                             </div>
                         </div>
                         <div class="instruction-item">
                             <span class="step">3</span>
                             <div class="content">
-                                <h4>Coluna 2:</h4>
-                                <p>Nome do estudante</p>
+                                <h4>Entrada Manual</h4>
+                                <p>Adicione estudantes individualmente: período, ID, nome, nota e status de frequência</p>
                             </div>
                         </div>
                         <div class="instruction-item">
                             <span class="step">4</span>
                             <div class="content">
-                                <h4>Coluna 3+:</h4>
-                                <p>Notas (escala 0-10)</p>
+                                <h4>Análise Completa</h4>
+                                <p>Sistema gera automaticamente: aprovação, frequência, médias e indicadores SEE-PB</p>
                             </div>
                         </div>
                     </div>
-                    <p class="note">O sistema calculará automaticamente as estatísticas de aprovação e desempenho da turma.</p>
+                    <p class="note">📄 <strong>PDF do SIAGE:</strong> Extração automática de nomes, notas do período selecionado e status de frequência diretamente do boletim oficial. 📊 <strong>Planilhas:</strong> Use formato tradicional, opcionalmente inclua coluna de frequência ("Frequente"/"Infrequente"). ✏️ <strong>Manual:</strong> Controle total sobre cada entrada de dados.</p>
                 </div>
             </div>
         </div>
 
         <div class="main-content">
             <div class="upload-section">
+                <div class="input-type-selector">
+                    <div class="type-buttons">
+                        <button class="type-btn active" id="pdfBtn" data-type="pdf">📄 PDF do SIAGE</button>
+                        <button class="type-btn" id="spreadsheetBtn" data-type="spreadsheet">📊 Planilha Excel/CSV</button>
+                    </div>
+                </div>
+
+                <div class="period-selector" id="periodSelector">
+                    <div class="period-title">📅 Selecione o Período para Análise:</div>
+                    <div class="period-buttons">
+                        <button class="period-btn active" data-period="1">1º Período</button>
+                        <button class="period-btn" data-period="2">2º Período</button>
+                        <button class="period-btn" data-period="3">3º Período</button>
+                        <button class="period-btn" data-period="4">4º Período</button>
+                    </div>
+                </div>
+
                 <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">📊</div>
-                    <div class="upload-text">Clique para selecionar ou arraste sua planilha aqui</div>
-                    <div class="upload-subtext">Suporte para arquivos .xlsx, .xls e .csv</div>
-                    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text" id="uploadText">Clique para selecionar ou arraste seu PDF do SIAGE aqui</div>
+                    <div class="upload-subtext" id="uploadSubtext">Boletim escolar em formato PDF</div>
+                    <input type="file" id="fileInput" accept=".pdf">
                 </div>
 
                 <div class="messages">
@@ -803,12 +806,12 @@
 
                 <div class="data-preview" id="dataPreview">
                     <div class="preview-section">
-                        <div class="preview-title">📋 Dados Encontrados na Planilha</div>
+                        <div class="preview-title">📋 Dados Encontrados</div>
                         <div class="data-table">
                             <div class="table-header">
                                 <div>ID</div>
                                 <div>Nome</div>
-                                <div>Notas</div>
+                                <div>Notas & Frequência</div>
                             </div>
                             <div id="dataTableBody"></div>
                         </div>
@@ -824,6 +827,15 @@
                         <div class="preview-title">✏️ Entrada Manual de Dados</div>
                         <div class="input-grid">
                             <div class="input-group">
+                                <label class="input-label">Período das Notas</label>
+                                <select class="input-field" id="studentPeriod">
+                                    <option value="1">1º Período</option>
+                                    <option value="2">2º Período</option>
+                                    <option value="3">3º Período</option>
+                                    <option value="4">4º Período</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
                                 <label class="input-label">ID do Estudante</label>
                                 <input type="text" class="input-field" id="studentId" placeholder="Ex: 001">
                             </div>
@@ -832,8 +844,15 @@
                                 <input type="text" class="input-field" id="studentName" placeholder="Ex: João Silva">
                             </div>
                             <div class="input-group">
-                                <label class="input-label">Notas (separadas por vírgula)</label>
-                                <input type="text" class="input-field" id="studentGrades" placeholder="Ex: 8.5, 7.0, 9.2">
+                                <label class="input-label">Nota do Período (0-10)</label>
+                                <input type="number" class="input-field" id="studentGrade" placeholder="Ex: 8.5" min="0" max="10" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Frequência</label>
+                                <select class="input-field" id="studentFrequency">
+                                    <option value="Frequente">Frequente</option>
+                                    <option value="Infrequente">Infrequente</option>
+                                </select>
                             </div>
                             <div class="input-group">
                                 <button class="add-student-btn" id="addStudent">Adicionar Estudante</button>
@@ -847,7 +866,7 @@
 
         <div class="results" id="results">
             <div class="stats-section">
-                <div class="section-title">Análise de Desempenho da Turma</div>
+                <div class="section-title">📊 Análise Geral de Desempenho</div>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-value" id="passRate">0%</div>
@@ -865,363 +884,601 @@
                         <div class="stat-value" id="lowGrades">0%</div>
                         <div class="stat-label">Notas < 5.0</div>
                     </div>
-                </div>
-            </div>
-        </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="frequentStudents">0%</div>
+                        <div class="stat-label">Frequentes</div>
+                   </div>
+                   <div class="stat-card">
+                       <div class="stat-value" id="infrequentStudents">0%</div>
+                       <div class="stat-label">Infrequentes</div>
+                   </div>
+               </div>
+           </div>
 
-        <div class="bottom-stats">
-            <div class="bottom-stat">
-                <div class="bottom-stat-number" id="totalStudents">0</div>
-                <div class="bottom-stat-label">Total de Estudantes</div>
-            </div>
-            <div class="bottom-stat">
-                <div class="bottom-stat-number" id="approvedCount">0%</div>
-                <div class="bottom-stat-label">Aprovados</div>
-            </div>
-            <div class="bottom-stat">
-                <div class="bottom-stat-number" id="reprovedCount">0%</div>
-                <div class="bottom-stat-label">Reprovados</div>
-            </div>
-            <div class="bottom-stat">
-                <div class="bottom-stat-number" id="lowGradeCount">0%</div>
-                <div class="bottom-stat-label">Nota < 5.0</div>
-            </div>
-        </div>
+           <div class="stats-section">
+               <div class="section-title">📈 Indicadores SEE-PB (CREGE)</div>
+               <div class="stats-grid">
+                   <div class="stat-card">
+                       <div class="stat-value" id="approvalIndex">0%</div>
+                       <div class="stat-label">Índice de Aprovação</div>
+                   </div>
+                   <div class="stat-card">
+                       <div class="stat-value" id="reprobationRisk">0%</div>
+                       <div class="stat-label">Risco de Reprovação</div>
+                   </div>
+                   <div class="stat-card">
+                       <div class="stat-value" id="schoolAverage">0.0</div>
+                       <div class="stat-label">Média Geral da Escola</div>
+                   </div>
+                   <div class="stat-card">
+                       <div class="stat-value" id="criticalStudents">0%</div>
+                       <div class="stat-label">Estudantes em Situação Crítica</div>
+                   </div>
+               </div>
+           </div>
 
-        <div class="footer">
-            <p>Desenvolvido pelo Professor <a href="https://www.viniciuslisboa.com.br" target="_blank">Vinícius Lisboa</a></p>
-            <p>ECIT Henrique Fernandes de Farias</p>
-        </div>
-    </div>
+           <div class="stats-section">
+               <div class="section-title">🎯 Detalhamento por Faixas de Desempenho</div>
+               <div class="stats-grid">
+                   <div class="stat-card">
+                       <div class="stat-value" id="excellentStudents">0%</div>
+                       <div class="stat-label">Excelente (9.0-10.0)</div>
+                   </div>
+                   <div class="stat-card">
+                       <div class="stat-value" id="goodStudents">0%</div>
+                       <div class="stat-label">Bom (7.0-8.9)</div>
+                   </div>
+                   <div class="stat-card">
+                       <div class="stat-value" id="regularStudents">0%</div>
+                       <div class="stat-label">Regular (5.0-6.9)</div>
+                   </div>
+                   <div class="stat-card">
+                       <div class="stat-value" id="insufficientStudents">0%</div>
+                       <div class="stat-label">Insuficiente (0-4.9)</div>
+                   </div>
+               </div>
+           </div>
+       </div>
 
-    <script>
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const errorMsg = document.getElementById('errorMsg');
-        const successMsg = document.getElementById('successMsg');
-        const fileInfo = document.getElementById('fileInfo');
-        const results = document.getElementById('results');
-        const dataPreview = document.getElementById('dataPreview');
-        const manualInput = document.getElementById('manualInput');
-        const toggleManual = document.getElementById('toggleManual');
-        const addStudentBtn = document.getElementById('addStudent');
+       <div class="bottom-stats">
+           <div class="bottom-stat">
+               <div class="bottom-stat-number" id="totalStudents">0</div>
+               <div class="bottom-stat-label">Total de Estudantes</div>
+           </div>
+           <div class="bottom-stat">
+               <div class="bottom-stat-number" id="approvedCount">0%</div>
+               <div class="bottom-stat-label">Aprovados</div>
+           </div>
+           <div class="bottom-stat">
+               <div class="bottom-stat-number" id="reprovedCount">0%</div>
+               <div class="bottom-stat-label">Reprovados</div>
+           </div>
+           <div class="bottom-stat">
+               <div class="bottom-stat-number" id="lowGradeCount">0%</div>
+               <div class="bottom-stat-label">Nota < 5.0</div>
+           </div>
+           <div class="bottom-stat">
+               <div class="bottom-stat-number" id="frequentCount">0%</div>
+               <div class="bottom-stat-label">Frequentes</div>
+           </div>
+           <div class="bottom-stat">
+               <div class="bottom-stat-number" id="infrequentCount">0%</div>
+               <div class="bottom-stat-label">Infrequentes</div>
+           </div>
+       </div>
 
-        let studentsData = [];
-        let manualMode = false;
+       <div class="footer">
+           <p>Desenvolvido pelo Professor <a href="https://www.viniciuslisboa.com.br" target="_blank">Vinícius Lisboa</a></p>
+           <p>ECIT Henrique Fernandes de Farias</p>
+       </div>
+   </div>
 
-        // Upload area interactions
-        uploadArea.addEventListener('click', () => fileInput.click());
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleFile(files[0]);
-            }
-        });
+   <script>
+       const uploadArea = document.getElementById('uploadArea');
+       const fileInput = document.getElementById('fileInput');
+       const errorMsg = document.getElementById('errorMsg');
+       const successMsg = document.getElementById('successMsg');
+       const fileInfo = document.getElementById('fileInfo');
+       const results = document.getElementById('results');
+       const dataPreview = document.getElementById('dataPreview');
+       const manualInput = document.getElementById('manualInput');
+       const toggleManual = document.getElementById('toggleManual');
+       const addStudentBtn = document.getElementById('addStudent');
+       const periodSelector = document.getElementById('periodSelector');
+       const uploadText = document.getElementById('uploadText');
+       const uploadSubtext = document.getElementById('uploadSubtext');
 
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFile(e.target.files[0]);
-            }
-        });
+       let studentsData = [];
+       let manualMode = false;
+       let inputType = 'pdf';
+       let selectedPeriod = 1;
 
-        toggleManual.addEventListener('click', () => {
-            manualMode = !manualMode;
-            if (manualMode) {
-                manualInput.style.display = 'block';
-                toggleManual.textContent = '📊 Voltar para Upload de Planilha';
-            } else {
-                manualInput.style.display = 'none';
-                toggleManual.textContent = '📝 Adicionar/Editar Dados Manualmente';
-            }
-        });
+       // Configure PDF.js
+       if (typeof pdfjsLib !== 'undefined') {
+           pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+       }
 
-        addStudentBtn.addEventListener('click', addStudent);
+       // Type selection buttons
+       document.querySelectorAll('.type-btn').forEach(btn => {
+           btn.addEventListener('click', (e) => {
+               document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+               btn.classList.add('active');
+               inputType = btn.dataset.type;
+               updateInterface();
+           });
+       });
 
-        // Enter key para adicionar estudante
-        document.getElementById('studentGrades').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                addStudent();
-            }
-        });
+       // Period selection buttons
+       document.querySelectorAll('.period-btn').forEach(btn => {
+           btn.addEventListener('click', (e) => {
+               document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+               btn.classList.add('active');
+               selectedPeriod = parseInt(btn.dataset.period);
+           });
+       });
 
-        function showError(message) {
-            errorMsg.textContent = message;
-            errorMsg.style.display = 'block';
-            successMsg.style.display = 'none';
-            results.style.display = 'none';
-            fileInfo.style.display = 'none';
-            dataPreview.style.display = 'none';
-        }
+       function updateInterface() {
+           if (inputType === 'pdf') {
+               periodSelector.classList.remove('hidden');
+               fileInput.accept = '.pdf';
+               uploadText.textContent = 'Clique para selecionar ou arraste seu PDF do SIAGE aqui';
+               uploadSubtext.textContent = 'Boletim escolar em formato PDF';
+               document.querySelector('.upload-icon').textContent = '📄';
+           } else {
+               periodSelector.classList.add('hidden');
+               fileInput.accept = '.xlsx,.xls,.csv';
+               uploadText.textContent = 'Clique para selecionar ou arraste sua planilha aqui';
+               uploadSubtext.textContent = 'Suporte para arquivos .xlsx, .xls e .csv';
+               document.querySelector('.upload-icon').textContent = '📊';
+           }
+       }
 
-        function showSuccess(message) {
-            successMsg.textContent = message;
-            successMsg.style.display = 'block';
-            errorMsg.style.display = 'none';
-        }
+       // Upload area interactions
+       uploadArea.addEventListener('click', () => fileInput.click());
+       uploadArea.addEventListener('dragover', (e) => {
+           e.preventDefault();
+           uploadArea.classList.add('dragover');
+       });
+       uploadArea.addEventListener('dragleave', () => {
+           uploadArea.classList.remove('dragover');
+       });
+       uploadArea.addEventListener('drop', (e) => {
+           e.preventDefault();
+           uploadArea.classList.remove('dragover');
+           const files = e.dataTransfer.files;
+           if (files.length > 0) {
+               handleFile(files[0]);
+           }
+       });
 
-        function showFileInfo(fileName, studentCount) {
-            document.getElementById('fileName').textContent = fileName;
-            document.getElementById('fileDetails').textContent = `${studentCount} estudantes encontrados`;
-            fileInfo.style.display = 'block';
-        }
+       fileInput.addEventListener('change', (e) => {
+           if (e.target.files.length > 0) {
+               handleFile(e.target.files[0]);
+           }
+       });
 
-        function showDataPreview(students) {
-            const tableBody = document.getElementById('dataTableBody');
-            tableBody.innerHTML = '';
-            
-            students.forEach(student => {
-                const row = document.createElement('div');
-                row.className = 'table-row';
-                
-                const gradesHtml = student.grades.map(grade => 
-                    `<span class="grade-item">${grade.toFixed(1)}</span>`
-                ).join('');
-                
-                row.innerHTML = `
-                    <div>${student.id || 'N/A'}</div>
-                    <div>${student.name || 'Sem nome'}</div>
-                    <div class="grades-list">${gradesHtml}</div>
-                `;
-                
-                tableBody.appendChild(row);
-            });
-            
-            dataPreview.style.display = 'block';
-        }
+       toggleManual.addEventListener('click', () => {
+           manualMode = !manualMode;
+           if (manualMode) {
+               manualInput.style.display = 'block';
+               toggleManual.textContent = '📊 Voltar para Upload';
+           } else {
+               manualInput.style.display = 'none';
+               toggleManual.textContent = '📝 Adicionar/Editar Dados Manualmente';
+           }
+       });
 
-        function addStudent() {
-            const id = document.getElementById('studentId').value.trim();
-            const name = document.getElementById('studentName').value.trim();
-            const gradesText = document.getElementById('studentGrades').value.trim();
-            
-            if (!name || !gradesText) {
-                showError('Por favor, preencha pelo menos o nome e as notas do estudante');
-                return;
-            }
-            
-            // Parse das notas
-            const grades = gradesText.split(',').map(g => {
-                const grade = parseFloat(g.trim().replace(',', '.'));
-                return isNaN(grade) ? null : grade;
-            }).filter(g => g !== null && g >= 0 && g <= 10);
-            
-            if (grades.length === 0) {
-                showError('Digite pelo menos uma nota válida (0-10)');
-                return;
-            }
-            
-            // Adicionar estudante
-            const student = {
-                id: id || `EST${studentsData.length + 1}`,
-                name: name,
-                grades: grades
-            };
-            
-            studentsData.push(student);
-            
-            // Limpar campos
-            document.getElementById('studentId').value = '';
-            document.getElementById('studentName').value = '';
-            document.getElementById('studentGrades').value = '';
-            
-            // Atualizar interface
-            updateStudentList();
-            calculateStatistics(studentsData, 'Entrada Manual');
-            showSuccess(`Estudante ${name} adicionado com sucesso!`);
-        }
+       addStudentBtn.addEventListener('click', addStudent);
 
-        function updateStudentList() {
-            const studentList = document.getElementById('studentList');
-            studentList.innerHTML = '';
-            
-            studentsData.forEach((student, index) => {
-                const item = document.createElement('div');
-                item.className = 'student-item';
-                
-                const gradesText = student.grades.map(g => g.toFixed(1)).join(', ');
-                
-                item.innerHTML = `
-                    <div>${student.id}</div>
-                    <div>${student.name}</div>
-                    <div>${gradesText}</div>
-                    <button class="delete-btn" onclick="removeStudent(${index})">✕</button>
-                `;
-                
-                studentList.appendChild(item);
-            });
-        }
+       // Enter key para adicionar estudante
+       document.getElementById('studentGrade').addEventListener('keypress', (e) => {
+           if (e.key === 'Enter') {
+               addStudent();
+           }
+       });
 
-        function removeStudent(index) {
-            studentsData.splice(index, 1);
-            updateStudentList();
-            
-            if (studentsData.length > 0) {
-                calculateStatistics(studentsData, 'Entrada Manual');
-            } else {
-                results.style.display = 'none';
-                showSuccess('Todos os estudantes foram removidos');
-            }
-        }
+       function showError(message) {
+           errorMsg.textContent = message;
+           errorMsg.style.display = 'block';
+           successMsg.style.display = 'none';
+           results.style.display = 'none';
+           fileInfo.style.display = 'none';
+           dataPreview.style.display = 'none';
+       }
 
-        function handleFile(file) {
-            const fileName = file.name;
-            const fileExtension = fileName.split('.').pop().toLowerCase();
+       function showSuccess(message) {
+           successMsg.textContent = message;
+           successMsg.style.display = 'block';
+           errorMsg.style.display = 'none';
+       }
 
-            if (!['xlsx', 'xls', 'csv'].includes(fileExtension)) {
-                showError('Formato de arquivo não suportado. Use .xlsx, .xls ou .csv');
-                return;
-            }
+       function showFileInfo(fileName, studentCount) {
+           document.getElementById('fileName').textContent = fileName;
+           document.getElementById('fileDetails').textContent = `${studentCount} estudantes encontrados`;
+           fileInfo.style.display = 'block';
+       }
 
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    let data;
-                    if (fileExtension === 'csv') {
-                        data = parseCSV(e.target.result);
-                    } else {
-                        data = parseExcel(e.target.result);
-                    }
-                    processData(data, fileName);
-                } catch (error) {
-                    showError('Erro ao processar arquivo: ' + error.message);
-                }
-            };
+       function showDataPreview(students) {
+           const tableBody = document.getElementById('dataTableBody');
+           tableBody.innerHTML = '';
+           
+           students.forEach(student => {
+               const row = document.createElement('div');
+               row.className = 'table-row';
+               
+               const gradesHtml = student.grades.map(grade => 
+                   `<span class="grade-item">${grade.toFixed(1)}</span>`
+               ).join('');
+               
+               const frequencyIcon = student.frequency === 'Frequente' ? '✅' : 
+                                   student.frequency === 'Infrequente' ? '❌' : '➖';
+               const frequencyText = student.frequency || 'N/I';
+               
+               row.innerHTML = `
+                   <div>${student.id || 'N/A'}</div>
+                   <div>${student.name || 'Sem nome'}</div>
+                   <div class="grades-list">${gradesHtml} ${frequencyIcon} ${frequencyText}</div>
+               `;
+               
+               tableBody.appendChild(row);
+           });
+           
+           dataPreview.style.display = 'block';
+       }
 
-            if (fileExtension === 'csv') {
-                reader.readAsText(file);
-            } else {
-                reader.readAsArrayBuffer(file);
-            }
-        }
+       function addStudent() {
+           const id = document.getElementById('studentId').value.trim();
+           const name = document.getElementById('studentName').value.trim();
+           const gradeValue = document.getElementById('studentGrade').value.trim();
+           const period = document.getElementById('studentPeriod').value;
+           const frequency = document.getElementById('studentFrequency').value;
+           
+           if (!name || !gradeValue) {
+               showError('Por favor, preencha o nome e a nota do estudante');
+               return;
+           }
+           
+           const grade = parseFloat(gradeValue);
+           if (isNaN(grade) || grade < 0 || grade > 10) {
+               showError('Digite uma nota válida (0-10)');
+               return;
+           }
+           
+           // Adicionar estudante
+           const student = {
+               id: id || `EST${studentsData.length + 1}`,
+               name: name,
+               grades: [grade],
+               period: period,
+               frequency: frequency
+           };
+           
+           studentsData.push(student);
+           
+           // Limpar campos
+           document.getElementById('studentId').value = '';
+           document.getElementById('studentName').value = '';
+           document.getElementById('studentGrade').value = '';
+           
+           // Atualizar interface
+           updateStudentList();
+           calculateStatistics(studentsData, 'Entrada Manual');
+           showSuccess(`Estudante ${name} adicionado! Nota: ${grade} | ${frequency} | ${period}º período`);
+       }
 
-        function parseCSV(csvText) {
-            const result = Papa.parse(csvText, {
-                header: false,
-                skipEmptyLines: true,
-                dynamicTyping: true
-            });
-            return result.data;
-        }
+       function updateStudentList() {
+           const studentList = document.getElementById('studentList');
+           studentList.innerHTML = '';
+           
+           studentsData.forEach((student, index) => {
+               const item = document.createElement('div');
+               item.className = 'student-item';
+               
+               const grade = student.grades[0];
+               const frequency = student.frequency || 'N/I';
+               
+               item.innerHTML = `
+                   <div>${student.id}</div>
+                   <div>${student.name}</div>
+                   <div>${grade.toFixed(1)}</div>
+                   <div>${frequency}</div>
+                   <button class="delete-btn" onclick="removeStudent(${index})">✕</button>
+               `;
+               
+               studentList.appendChild(item);
+           });
+       }
 
-        function parseExcel(arrayBuffer) {
-            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            return XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-        }
+       function removeStudent(index) {
+           studentsData.splice(index, 1);
+           updateStudentList();
+           
+           if (studentsData.length > 0) {
+               calculateStatistics(studentsData, 'Entrada Manual');
+           } else {
+               results.style.display = 'none';
+               showSuccess('Todos os estudantes foram removidos');
+           }
+       }
 
-        function processData(data, fileName) {
-            if (!data || data.length < 2) {
-                showError('Planilha vazia ou com dados insuficientes');
-                return;
-            }
+       function handleFile(file) {
+           const fileName = file.name;
+           const fileExtension = fileName.split('.').pop().toLowerCase();
 
-            // Remove linhas vazias
-            data = data.filter(row => row && row.length > 0);
+           if (inputType === 'pdf' && fileExtension !== 'pdf') {
+               showError('Para o modo PDF do SIAGE, selecione apenas arquivos PDF');
+               return;
+           }
 
-            if (data.length < 2) {
-                showError('Não há dados suficientes na planilha');
-                return;
-            }
+           if (inputType === 'spreadsheet' && !['xlsx', 'xls', 'csv'].includes(fileExtension)) {
+               showError('Para o modo planilha, use arquivos .xlsx, .xls ou .csv');
+               return;
+           }
 
-            // Pular cabeçalho se existir
-            let startRow = 0;
-            if (data[0] && typeof data[0][0] === 'string' && isNaN(Number(data[0][0]))) {
-                startRow = 1;
-            }
+           const reader = new FileReader();
+           reader.onload = (e) => {
+               try {
+                   if (inputType === 'pdf') {
+                       processPDF(e.target.result, fileName);
+                   } else {
+                       let data;
+                       if (fileExtension === 'csv') {
+                           data = parseCSV(e.target.result);
+                       } else {
+                           data = parseExcel(e.target.result);
+                       }
+                       processData(data, fileName);
+                   }
+               } catch (error) {
+                   showError('Erro ao processar arquivo: ' + error.message);
+               }
+           };
 
-            const students = [];
-            
-            for (let i = startRow; i < data.length; i++) {
-                const row = data[i];
-                if (!row || row.length < 3) continue;
+           if (inputType === 'pdf') {
+               reader.readAsArrayBuffer(file);
+           } else if (fileExtension === 'csv') {
+               reader.readAsText(file);
+           } else {
+               reader.readAsArrayBuffer(file);
+           }
+       }
 
-                const studentData = {
-                    id: row[0],
-                    name: row[1],
-                    grades: []
-                };
+       async function processPDF(arrayBuffer, fileName) {
+           try {
+               if (typeof pdfjsLib === 'undefined') {
+                   showError('Biblioteca PDF.js não carregada. Recarregue a página e tente novamente.');
+                   return;
+               }
 
-                // Extrair notas (da terceira coluna em diante)
-                for (let j = 2; j < row.length; j++) {
-                    const grade = parseFloat(row[j]);
-                    if (!isNaN(grade) && grade >= 0 && grade <= 10) {
-                        studentData.grades.push(grade);
-                    }
-                }
+               showSuccess('Processando PDF do SIAGE...');
+               
+               const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+               let allText = '';
+               
+               for (let i = 1; i <= pdf.numPages; i++) {
+                   const page = await pdf.getPage(i);
+                   const textContent = await page.getTextContent();
+                   const pageText = textContent.items.map(item => item.str).join(' ');
+                   allText += pageText + '\n';
+               }
+               
+               const students = extractStudentsFromSIAGE(allText);
+               
+               if (students.length === 0) {
+                   showError('Não foi possível extrair dados do PDF. Verifique se é um boletim do SIAGE válido.');
+                   return;
+               }
+               
+               studentsData = students;
+               showDataPreview(students);
+               calculateStatistics(students, fileName);
+               
+           } catch (error) {
+               showError('Erro ao processar PDF: ' + error.message);
+           }
+       }
 
-                if (studentData.grades.length > 0) {
-                    students.push(studentData);
-                }
-            }
+       function extractStudentsFromSIAGE(text) {
+           const students = [];
+           const lines = text.split('\n');
+           
+           // Procurar por dados de estudantes no texto
+           for (const line of lines) {
+               // Padrão básico para linhas de estudantes
+               const studentMatch = line.match(/^([A-ZÁÊÍÓÚÂÃÕÇ][a-záêíóúâãõç\s]+[A-ZÁÊÍÓÚÂÃÕÇ]*)\s+([\d,\s]+).*?(Frequente|Infrequente)?\s*Cursando?/i);
+               
+               if (studentMatch) {
+                   const name = studentMatch[1].trim();
+                   const gradesText = studentMatch[2];
+                   const frequency = studentMatch[3] || 'Frequente';
+                   
+                   // Extrair primeira nota válida encontrada
+                   const gradeValues = gradesText.split(/\s+/).map(g => {
+                       const grade = parseFloat(g.replace(',', '.'));
+                       return isNaN(grade) ? null : grade;
+                   }).filter(g => g !== null && g >= 0 && g <= 10);
+                   
+                   if (gradeValues.length > 0) {
+                       students.push({
+                           id: `EST${students.length + 1}`,
+                           name: name,
+                           grades: [gradeValues[0]], // Usar primeira nota
+                           frequency: frequency
+                       });
+                   }
+               }
+           }
+           
+           return students;
+       }
 
-            if (students.length === 0) {
-                showError('Nenhum estudante com notas válidas encontrado. Verifique se as notas estão nas colunas corretas (3ª coluna em diante)');
-                return;
-            }
+       function parseCSV(csvText) {
+           if (typeof Papa === 'undefined') {
+               throw new Error('Biblioteca PapaParse não carregada');
+           }
+           
+           const result = Papa.parse(csvText, {
+               header: false,
+               skipEmptyLines: true,
+               dynamicTyping: true
+           });
+           return result.data;
+       }
 
-            studentsData = students;
-            showDataPreview(students);
-            calculateStatistics(students, fileName);
-        }
+       function parseExcel(arrayBuffer) {
+           if (typeof XLSX === 'undefined') {
+               throw new Error('Biblioteca XLSX não carregada');
+           }
+           
+           const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+           return XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+       }
 
-        function calculateStatistics(students, fileName) {
-            const totalStudents = students.length;
-            let passCount = 0;
-            let lowGradeCount = 0;
-            let totalGradeSum = 0;
-            let totalGrades = 0;
+       function processData(data, fileName) {
+           if (!data || data.length < 2) {
+               showError('Planilha vazia ou com dados insuficientes');
+               return;
+           }
 
-            students.forEach(student => {
-                // Calcular média do aluno
-                const avgGrade = student.grades.reduce((sum, grade) => sum + grade, 0) / student.grades.length;
-                
-                if (avgGrade >= 7.0) {
-                    passCount++;
-                }
-                
-                if (avgGrade < 5.0) {
-                    lowGradeCount++;
-                }
+           data = data.filter(row => row && row.length > 0);
 
-                totalGradeSum += avgGrade;
-                totalGrades++;
-            });
+           if (data.length < 2) {
+               showError('Não há dados suficientes na planilha');
+               return;
+           }
 
-            const failCount = totalStudents - passCount;
-            
-            // Calcular porcentagens com arredondamento correto
-            const passRate = Math.round((passCount / totalStudents) * 100);
-            const failRate = Math.round((failCount / totalStudents) * 100);
-            const lowGradeRate = Math.round((lowGradeCount / totalStudents) * 100);
-            
-            // Calcular média da turma com 1 casa decimal
-            const classAverage = Math.round((totalGradeSum / totalGrades) * 10) / 10;
+           let startRow = 0;
+           if (data[0] && typeof data[0][0] === 'string' && isNaN(Number(data[0][0]))) {
+               startRow = 1;
+           }
 
-            // Atualizar interface principal
-            document.getElementById('passRate').textContent = passRate + '%';
-            document.getElementById('failRate').textContent = failRate + '%';
-            document.getElementById('avgGrade').textContent = classAverage.toFixed(1);
-            document.getElementById('lowGrades').textContent = lowGradeRate + '%';
+           const students = [];
+           
+           for (let i = startRow; i < data.length; i++) {
+               const row = data[i];
+               if (!row || row.length < 3) continue;
 
-            // Atualizar estatísticas do rodapé
-            document.getElementById('totalStudents').textContent = totalStudents;
-            document.getElementById('approvedCount').textContent = passRate + '%';
-            document.getElementById('reprovedCount').textContent = failRate + '%';
-            document.getElementById('lowGradeCount').textContent = lowGradeRate + '%';
+               const studentData = {
+                   id: row[0],
+                   name: row[1],
+                   grades: [],
+                   frequency: 'Frequente'
+               };
 
-            showFileInfo(fileName, totalStudents);
-            showSuccess('Análise concluída com sucesso!');
-            results.style.display = 'block';
-        }
-    </script>
+               let lastColumn = row.length;
+               
+               if (row[row.length - 1] && typeof row[row.length - 1] === 'string' && 
+                   (row[row.length - 1].toLowerCase().includes('frequente') || 
+                    row[row.length - 1].toLowerCase().includes('infrequente'))) {
+                   studentData.frequency = row[row.length - 1].toLowerCase().includes('infrequente') ? 'Infrequente' : 'Frequente';
+                   lastColumn = row.length - 1;
+               }
+
+               for (let j = 2; j < lastColumn; j++) {
+                   const grade = parseFloat(row[j]);
+                   if (!isNaN(grade) && grade >= 0 && grade <= 10) {
+                       studentData.grades.push(grade);
+                   }
+               }
+
+               if (studentData.grades.length > 0) {
+                   students.push(studentData);
+               }
+           }
+
+           if (students.length === 0) {
+               showError('Nenhum estudante com notas válidas encontrado. Verifique o formato: ID, Nome, Notas..., Frequência (opcional)');
+               return;
+           }
+
+           studentsData = students;
+           showDataPreview(students);
+           calculateStatistics(students, fileName);
+       }
+
+       function calculateStatistics(students, fileName) {
+           const totalStudents = students.length;
+           let passCount = 0;
+           let lowGradeCount = 0;
+           let excellentCount = 0;
+           let goodCount = 0;
+           let regularCount = 0;
+           let insufficientCount = 0;
+           let frequentCount = 0;
+           let infrequentCount = 0;
+           let totalGradeSum = 0;
+           let criticalStudentsCount = 0;
+
+           students.forEach(student => {
+               const avgGrade = student.grades.reduce((sum, grade) => sum + grade, 0) / student.grades.length;
+               
+               if (avgGrade >= 9.0) excellentCount++;
+               else if (avgGrade >= 7.0) goodCount++;
+               else if (avgGrade >= 5.0) regularCount++;
+               else insufficientCount++;
+               
+               if (avgGrade >= 7.0) passCount++;
+               if (avgGrade < 5.0) lowGradeCount++;
+               if (avgGrade < 4.0) criticalStudentsCount++;
+
+               if (student.frequency === 'Frequente') frequentCount++;
+               else if (student.frequency === 'Infrequente') infrequentCount++;
+
+               totalGradeSum += avgGrade;
+           });
+
+           const failCount = totalStudents - passCount;
+           
+           const passRate = Math.round((passCount / totalStudents) * 100);
+           const failRate = Math.round((failCount / totalStudents) * 100);
+           const lowGradeRate = Math.round((lowGradeCount / totalStudents) * 100);
+           const approvalIndex = Math.round((passCount / totalStudents) * 100);
+           const reprobationRisk = Math.round(((totalStudents - passCount) / totalStudents) * 100);
+           const excellentRate = Math.round((excellentCount / totalStudents) * 100);
+           const goodRate = Math.round((goodCount / totalStudents) * 100);
+           const regularRate = Math.round((regularCount / totalStudents) * 100);
+           const insufficientRate = Math.round((insufficientCount / totalStudents) * 100);
+           const criticalRate = Math.round((criticalStudentsCount / totalStudents) * 100);
+           const frequentRate = Math.round((frequentCount / totalStudents) * 100);
+           const infrequentRate = Math.round((infrequentCount / totalStudents) * 100);
+           const classAverage = Math.round((totalGradeSum / totalStudents) * 10) / 10;
+
+           // Atualizar interface principal
+           document.getElementById('passRate').textContent = passRate + '%';
+           document.getElementById('failRate').textContent = failRate + '%';
+           document.getElementById('avgGrade').textContent = classAverage.toFixed(1);
+           document.getElementById('lowGrades').textContent = lowGradeRate + '%';
+           document.getElementById('frequentStudents').textContent = frequentRate + '%';
+           document.getElementById('infrequentStudents').textContent = infrequentRate + '%';
+
+           // Atualizar indicadores SEE-PB
+           document.getElementById('approvalIndex').textContent = approvalIndex + '%';
+           document.getElementById('reprobationRisk').textContent = reprobationRisk + '%';
+           document.getElementById('schoolAverage').textContent = classAverage.toFixed(1);
+           document.getElementById('criticalStudents').textContent = criticalRate + '%';
+
+           // Atualizar faixas de desempenho
+           document.getElementById('excellentStudents').textContent = excellentRate + '%';
+           document.getElementById('goodStudents').textContent = goodRate + '%';
+           document.getElementById('regularStudents').textContent = regularRate + '%';
+           document.getElementById('insufficientStudents').textContent = insufficientRate + '%';
+
+           // Atualizar estatísticas do rodapé
+           document.getElementById('totalStudents').textContent = totalStudents;
+           document.getElementById('approvedCount').textContent = passRate + '%';
+           document.getElementById('reprovedCount').textContent = failRate + '%';
+           document.getElementById('lowGradeCount').textContent = lowGradeRate + '%';
+           document.getElementById('frequentCount').textContent = frequentRate + '%';
+           document.getElementById('infrequentCount').textContent = infrequentRate + '%';
+
+           showFileInfo(fileName, totalStudents);
+           showSuccess(`Análise concluída! ${totalStudents} estudantes processados. Média geral: ${classAverage.toFixed(1)} | Frequentes: ${frequentRate}%`);
+           results.style.display = 'block';
+       }
+
+       // Initialize interface
+       updateInterface();
+   </script>
 </body>
 </html>
