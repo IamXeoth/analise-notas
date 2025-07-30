@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Notas - ECIT Henrique Fernandes de Farias</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+            padding: 2rem 0;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.03em;
+        }
+
+        .header h2 {
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin-bottom: 2rem;
+            color: #888888;
+            letter-spacing: 0.02em;
+        }
+
+        .description {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .description > p {
+            color: #cccccc;
+            font-weight: 400;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .instructions {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid #333333;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: left;
+            backdrop-filter: blur(20px);
+        }
+
+        .instructions h3 {
+            color: #ffffff;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .instruction-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .instruction-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(30, 30, 30, 0.5);
+            border-radius: 8px;
+            border: 1px solid #444444;
+        }
+
+        .step {
+            background: #666666;
+            color: #ffffff;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .instruction-item p {
+            margin: 0;
+            color: #cccccc;
+            font-size: 0.95rem;
+        }
+
+        .note {
+            color: #888888;
+            font-size: 0.9rem;
+            text-align: center;
+            font-style: italic;
+            margin: 0;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .upload-section {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid #333333;
+            border-radius: 12px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .upload-area {
+            border: 2px dashed #444444;
+            border-radius: 8px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: rgba(30, 30, 30, 0.5);
+        }
+
+        .upload-area:hover {
+            border-color: #666666;
+            background: rgba(40, 40, 40, 0.6);
+        }
+
+        .upload-area.dragover {
+            border-color: #888888;
+            background: rgba(50, 50, 50, 0.7);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .upload-subtext {
+            color: #888888;
+            font-size: 0.9rem;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .results {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .stats-section {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid #333333;
+            border-radius: 12px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: rgba(30, 30, 30, 0.8);
+            border: 1px solid #444444;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            background: rgba(40, 40, 40, 0.8);
+            border-color: #666666;
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-label {
+            color: #888888;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-card:nth-child(1) .stat-value { color: #00ff88; }
+        .stat-card:nth-child(2) .stat-value { color: #ff4757; }
+        .stat-card:nth-child(3) .stat-value { color: #3742fa; }
+        .stat-card:nth-child(4) .stat-value { color: #ffa502; }
+
+        .messages {
+            margin: 1rem 0;
+        }
+
+        .error {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            color: #ff4757;
+            display: none;
+            margin-bottom: 1rem;
+        }
+
+        .success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            color: #00ff88;
+            display: none;
+            margin-bottom: 1rem;
+        }
+
+        .file-info {
+            background: rgba(30, 30, 30, 0.8);
+            border: 1px solid #444444;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .file-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        .file-details {
+            color: #888888;
+            font-size: 0.9rem;
+        }
+
+        .bottom-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .bottom-stat {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .bottom-stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+        }
+
+        .bottom-stat-label {
+            color: #666666;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .bottom-stat:nth-child(2) .bottom-stat-number { color: #00ff88; }
+        .bottom-stat:nth-child(3) .bottom-stat-number { color: #ff4757; }
+        .bottom-stat:nth-child(4) .bottom-stat-number { color: #ffa502; }
+
+        .footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid #333333;
+            color: #666666;
+            font-size: 0.9rem;
+        }
+
+        .footer p {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer a {
+            color: #888888;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .footer a:hover {
+            color: #ffffff;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .header h1 {
+                font-size: 3rem;
+            }
+
+            .instruction-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header {
+                margin-bottom: 3rem;
+                padding: 1rem 0;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .header h2 {
+                font-size: 1.2rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .description > p {
+                font-size: 1.1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .instructions {
+                padding: 1.5rem;
+            }
+
+            .instructions h3 {
+                font-size: 1.2rem;
+                margin-bottom: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.8rem;
+            }
+
+            .stat-card {
+                padding: 1.2rem;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+
+            .stat-label {
+                font-size: 0.8rem;
+            }
+            
+            .bottom-stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.8rem;
+            }
+
+            .bottom-stat-number {
+                font-size: 1.5rem;
+            }
+
+            .instruction-grid {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+
+            .instruction-item {
+                padding: 0.8rem;
+                gap: 0.8rem;
+            }
+
+            .step {
+                width: 25px;
+                height: 25px;
+                font-size: 0.8rem;
+            }
+
+            .instruction-item p {
+                font-size: 0.9rem;
+            }
+
+            .upload-area {
+                padding: 2rem 1rem;
+            }
+
+            .upload-icon {
+                font-size: 2.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .upload-text {
+                font-size: 1.1rem;
+            }
+
+            .upload-subtext {
+                font-size: 0.85rem;
+            }
+
+            .upload-section, .stats-section {
+                padding: 1.5rem;
+            }
+
+            .main-content {
+                gap: 1.5rem;
+                margin-bottom: 3rem;
+            }
+
+            .footer {
+                margin-top: 3rem;
+                padding-top: 1.5rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .header h2 {
+                font-size: 1rem;
+            }
+
+            .description > p {
+                font-size: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+
+            .bottom-stats {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+
+            .upload-area {
+                padding: 1.5rem 1rem;
+            }
+
+            .upload-text {
+                font-size: 1rem;
+            }
+
+            .instruction-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.5rem;
+            }
+
+            .step {
+                align-self: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SISTEMA DE NOTAS</h1>
+            <h2>ECIT HENRIQUE FERNANDES DE FARIAS</h2>
+            <div class="description">
+                <p>Sistema automatizado para análise de desempenho acadêmico</p>
+                
+                <div class="instructions">
+                    <h3>Como usar:</h3>
+                    <div class="instruction-grid">
+                        <div class="instruction-item">
+                            <span class="step">1</span>
+                            <p>Faça upload de uma planilha Excel (.xlsx, .xls) ou CSV</p>
+                        </div>
+                        <div class="instruction-item">
+                            <span class="step">2</span>
+                            <p><strong>Coluna 1:</strong> ID/Número do estudante</p>
+                        </div>
+                        <div class="instruction-item">
+                            <span class="step">3</span>
+                            <p><strong>Coluna 2:</strong> Nome do estudante</p>
+                        </div>
+                        <div class="instruction-item">
+                            <span class="step">4</span>
+                            <p><strong>Coluna 3+:</strong> Notas (escala 0-10)</p>
+                        </div>
+                    </div>
+                    <p class="note">O sistema calculará automaticamente as estatísticas de aprovação e desempenho da turma.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📊</div>
+                    <div class="upload-text">Clique para selecionar ou arraste sua planilha aqui</div>
+                    <div class="upload-subtext">Suporte para arquivos .xlsx, .xls e .csv</div>
+                    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+                </div>
+
+                <div class="messages">
+                    <div class="error" id="errorMsg"></div>
+                    <div class="success" id="successMsg"></div>
+                    <div class="file-info" id="fileInfo">
+                        <div class="file-name" id="fileName"></div>
+                        <div class="file-details" id="fileDetails"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="results" id="results">
+            <div class="stats-section">
+                <div class="section-title">Análise de Desempenho da Turma</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="passRate">0%</div>
+                        <div class="stat-label">Estudantes ≥ 7.0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="failRate">0%</div>
+                        <div class="stat-label">Estudantes < 7.0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgGrade">0.0</div>
+                        <div class="stat-label">Média da Turma</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="lowGrades">0%</div>
+                        <div class="stat-label">Notas < 5.0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-stats">
+            <div class="bottom-stat">
+                <div class="bottom-stat-number" id="totalStudents">0</div>
+                <div class="bottom-stat-label">Total de Estudantes</div>
+            </div>
+            <div class="bottom-stat">
+                <div class="bottom-stat-number" id="approvedCount">0%</div>
+                <div class="bottom-stat-label">Aprovados</div>
+            </div>
+            <div class="bottom-stat">
+                <div class="bottom-stat-number" id="reprovedCount">0%</div>
+                <div class="bottom-stat-label">Reprovados</div>
+            </div>
+            <div class="bottom-stat">
+                <div class="bottom-stat-number" id="lowGradeCount">0%</div>
+                <div class="bottom-stat-label">Nota < 5.0</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Desenvolvido pelo Professor <a href="https://www.viniciuslisboa.com.br" target="_blank">Vinícius Lisboa</a></p>
+            <p>ECIT Henrique Fernandes de Farias</p>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const errorMsg = document.getElementById('errorMsg');
+        const successMsg = document.getElementById('successMsg');
+        const fileInfo = document.getElementById('fileInfo');
+        const results = document.getElementById('results');
+
+        // Upload area interactions
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function showError(message) {
+            errorMsg.textContent = message;
+            errorMsg.style.display = 'block';
+            successMsg.style.display = 'none';
+            results.style.display = 'none';
+            fileInfo.style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            successMsg.textContent = message;
+            successMsg.style.display = 'block';
+            errorMsg.style.display = 'none';
+        }
+
+        function showFileInfo(fileName, studentCount) {
+            document.getElementById('fileName').textContent = fileName;
+            document.getElementById('fileDetails').textContent = `${studentCount} estudantes encontrados`;
+            fileInfo.style.display = 'block';
+        }
+
+        function handleFile(file) {
+            const fileName = file.name;
+            const fileExtension = fileName.split('.').pop().toLowerCase();
+
+            if (!['xlsx', 'xls', 'csv'].includes(fileExtension)) {
+                showError('Formato de arquivo não suportado. Use .xlsx, .xls ou .csv');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    let data;
+                    if (fileExtension === 'csv') {
+                        data = parseCSV(e.target.result);
+                    } else {
+                        data = parseExcel(e.target.result);
+                    }
+                    processData(data, fileName);
+                } catch (error) {
+                    showError('Erro ao processar arquivo: ' + error.message);
+                }
+            };
+
+            if (fileExtension === 'csv') {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function parseCSV(csvText) {
+            const result = Papa.parse(csvText, {
+                header: false,
+                skipEmptyLines: true,
+                dynamicTyping: true
+            });
+            return result.data;
+        }
+
+        function parseExcel(arrayBuffer) {
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            return XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+        }
+
+        function processData(data, fileName) {
+            if (!data || data.length < 2) {
+                showError('Planilha vazia ou com dados insuficientes');
+                return;
+            }
+
+            // Remove linhas vazias
+            data = data.filter(row => row && row.length > 0);
+
+            if (data.length < 2) {
+                showError('Não há dados suficientes na planilha');
+                return;
+            }
+
+            // Pular cabeçalho se existir
+            let startRow = 0;
+            if (data[0] && typeof data[0][0] === 'string' && isNaN(Number(data[0][0]))) {
+                startRow = 1;
+            }
+
+            const students = [];
+            
+            for (let i = startRow; i < data.length; i++) {
+                const row = data[i];
+                if (!row || row.length < 3) continue;
+
+                const studentData = {
+                    id: row[0],
+                    name: row[1],
+                    grades: []
+                };
+
+                // Extrair notas (da terceira coluna em diante)
+                for (let j = 2; j < row.length; j++) {
+                    const grade = parseFloat(row[j]);
+                    if (!isNaN(grade) && grade >= 0 && grade <= 10) {
+                        studentData.grades.push(grade);
+                    }
+                }
+
+                if (studentData.grades.length > 0) {
+                    students.push(studentData);
+                }
+            }
+
+            if (students.length === 0) {
+                showError('Nenhum estudante com notas válidas encontrado. Verifique se as notas estão nas colunas corretas (3ª coluna em diante)');
+                return;
+            }
+
+            calculateStatistics(students, fileName);
+        }
+
+        function calculateStatistics(students, fileName) {
+            const totalStudents = students.length;
+            let passCount = 0;
+            let lowGradeCount = 0;
+            let totalGradeSum = 0;
+            let totalGrades = 0;
+
+            students.forEach(student => {
+                // Calcular média do aluno
+                const avgGrade = student.grades.reduce((sum, grade) => sum + grade, 0) / student.grades.length;
+                
+                if (avgGrade >= 7.0) {
+                    passCount++;
+                }
+                
+                if (avgGrade < 5.0) {
+                    lowGradeCount++;
+                }
+
+                totalGradeSum += avgGrade;
+                totalGrades++;
+            });
+
+            const failCount = totalStudents - passCount;
+            const passRate = ((passCount / totalStudents) * 100).toFixed(1);
+            const failRate = ((failCount / totalStudents) * 100).toFixed(1);
+            const classAverage = (totalGradeSum / totalGrades).toFixed(1);
+            const lowGradeRate = ((lowGradeCount / totalStudents) * 100).toFixed(1);
+
+            // Atualizar interface principal
+            document.getElementById('passRate').textContent = passRate + '%';
+            document.getElementById('failRate').textContent = failRate + '%';
+            document.getElementById('avgGrade').textContent = classAverage;
+            document.getElementById('lowGrades').textContent = lowGradeRate + '%';
+
+            // Atualizar estatísticas do rodapé
+            document.getElementById('totalStudents').textContent = totalStudents;
+            document.getElementById('approvedCount').textContent = passRate + '%';
+            document.getElementById('reprovedCount').textContent = failRate + '%';
+            document.getElementById('lowGradeCount').textContent = lowGradeRate + '%';
+
+            showFileInfo(fileName, totalStudents);
+            showSuccess('Análise concluída com sucesso!');
+            results.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
