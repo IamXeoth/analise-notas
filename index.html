@@ -861,39 +861,60 @@
            
            console.log('Texto completo extraído:', text);
            
-           // O texto vem em poucas linhas longas, então vamos buscar padrões dentro do texto todo
+           // Múltiplos padrões para diferentes formatos de boletim
            
-           // Estratégia: Buscar por padrões Nome + Nota + Frequência no texto completo
+           // Padrão 1: Nome + 1 nota + 6 traços + Frequência (formato anterior)
+           const pattern1 = /([A-ZÁÊÇÕÍÓÚ][A-Za-záêçõüàíóúÀÁÊÇÕÍÓÚ\s]+?)\s+(\d+,\d+|\d+|\-)\s+\-\s+\-\s+\-\s+\-\s+\-\s+\-\s+(Frequente|Infrequente)/g;
            
-           // Regex para encontrar estudantes: Nome (palavras com maiúscula) + nota (X,X ou -) + ... + Frequente/Infrequente
-           const studentPattern = /([A-ZÁÊÇÕÍÓÚ][A-Za-záêçõüàíóúÀÁÊÇÕÍÓÚ\s]+?)\s+(\d+,\d+|\d+|\-)\s+\-\s+\-\s+\-\s+\-\s+\-\s+\-\s+(Frequente|Infrequente)/g;
+           // Padrão 2: Nome + 2 notas + 5 traços + Frequência (formato atual)
+           const pattern2 = /([A-ZÁÊÇÕÍÓÚ][A-Za-záêçõüàíóúÀÁÊÇÕÍÓÚ\s]+?)\s+(\d+,\d+|\d+|\-)\s+(\d+,\d+|\d+|\-)\s+\-\s+\-\s+\-\s+\-\s+\-\s+(Frequente|Infrequente)/g;
+           
+           console.log('Tentando Padrão 1 (1 nota + 6 traços)...');
            
            let match;
-           while ((match = studentPattern.exec(text)) !== null) {
+           let foundStudents = 0;
+           
+           // Tentar padrão 1 primeiro
+           while ((match = pattern1.exec(text)) !== null) {
                const name = match[1].trim();
                const grade = match[2];
                const frequency = match[3];
                
-               console.log(`✓ PADRÃO ENCONTRADO: Nome="${name}", Nota="${grade}", Freq="${frequency}"`);
-               
-               // Validar se é realmente um nome de estudante
-               if (name.length >= 3 && 
-                   name.length <= 100 && 
-                   !name.includes('ESTUDANTES') && 
-                   !name.includes('PERÍODO') &&
-                   !name.includes('MÉDIA') &&
-                   !name.includes('ECIT') &&
-                   !name.includes('Secretaria')) {
-                   
+               if (isValidStudentName(name)) {
                    excelRows.push({
                        'ESTUDANTES': name,
                        'MÉDIA DO 1º PERÍODO': grade,
                        'FREQUÊNCIA': frequency
                    });
                    
-                   console.log(`✓ ESTUDANTE ADICIONADO: ${name} | ${grade} | ${frequency}`);
-               } else {
-                   console.log(`✗ Rejeitado (não é nome válido): "${name}"`);
+                   foundStudents++;
+                   console.log(`✓ Padrão 1 - ESTUDANTE ${foundStudents}: ${name} | ${grade} | ${frequency}`);
+               }
+           }
+           
+           // Se não encontrou com padrão 1, tentar padrão 2
+           if (foundStudents === 0) {
+               console.log('Nenhum estudante encontrado com Padrão 1, tentando Padrão 2 (2 notas + 5 traços)...');
+               
+               // Reset regex
+               pattern2.lastIndex = 0;
+               
+               while ((match = pattern2.exec(text)) !== null) {
+                   const name = match[1].trim();
+                   const grade1 = match[2]; // Primeira nota (1º período)
+                   const grade2 = match[3]; // Segunda nota (2º período) - ignoramos
+                   const frequency = match[4];
+                   
+                   if (isValidStudentName(name)) {
+                       excelRows.push({
+                           'ESTUDANTES': name,
+                           'MÉDIA DO 1º PERÍODO': grade1,
+                           'FREQUÊNCIA': frequency
+                       });
+                       
+                       foundStudents++;
+                       console.log(`✓ Padrão 2 - ESTUDANTE ${foundStudents}: ${name} | ${grade1} (1º período) | ${frequency}`);
+                   }
                }
            }
            
@@ -906,76 +927,20 @@
            return excelRows;
        }
 
-       function extractStudentData(line) {
-           console.log('    Extraindo dados de:', line);
-           
-           // Estratégia principal: encontrar as 3 colunas
-           
-           // 1. FREQUÊNCIA (última informação)
-           let frequency = '';
-           if (line.includes('Frequente') && !line.includes('Infrequente')) {
-               frequency = 'Frequente';
-           } else if (line.includes('Infrequente')) {
-               frequency = 'Infrequente';
-           } else {
-               frequency = 'Frequente'; // Padrão
-           }
-           
-           // 2. Remover informações após a frequência
-           let dataLine = line.replace(/\s+(Frequente|Infrequente).*$/, '');
-           console.log('    Linha limpa:', dataLine);
-           
-           // 3. Dividir em palavras
-           const words = dataLine.trim().split(/\s+/);
-           console.log('    Palavras:', words);
-           
-           // 4. MÉDIA DO 1º PERÍODO (buscar número decimal ou traço)
-           let gradeIndex = -1;
-           let grade = '';
-           
-           for (let i = 0; i < words.length; i++) {
-               // Buscar padrão de nota: número com vírgula, ponto ou traço
-               if (words[i].match(/^\d+[,.]?\d*$/) || words[i] === '-') {
-                   gradeIndex = i;
-                   grade = words[i];
-                   console.log(`    NOTA encontrada no índice ${i}: "${grade}"`);
-                   break;
-               }
-           }
-           
-           // 5. ESTUDANTES (nome completo antes da nota)
-           let studentName = '';
-           if (gradeIndex > 0) {
-               studentName = words.slice(0, gradeIndex).join(' ').trim();
-           } else if (words.length > 0) {
-               // Se não achou nota, pega as primeiras palavras que parecem nome
-               const nameWords = [];
-               for (const word of words) {
-                   if (word.match(/^[A-ZÁÊÇÕ]/)) {
-                       nameWords.push(word);
-                   } else {
-                       break;
-                   }
-               }
-               studentName = nameWords.join(' ').trim();
-           }
-           
-           console.log(`    NOME extraído: "${studentName}"`);
-           console.log(`    NOTA extraída: "${grade}"`);
-           console.log(`    FREQUÊNCIA extraída: "${frequency}"`);
-           
-           // Validar se temos dados mínimos
-           if (studentName.length >= 3 && studentName.length <= 100) {
-               return {
-                   'ESTUDANTES': studentName,
-                   'MÉDIA DO 1º PERÍODO': grade || '-',
-                   'FREQUÊNCIA': frequency
-               };
-           }
-           
-           console.log('    ✗ Dados insuficientes para criar estudante');
-           return null;
+       function isValidStudentName(name) {
+           return name.length >= 3 && 
+                  name.length <= 100 && 
+                  !name.includes('ESTUDANTES') && 
+                  !name.includes('PERÍODO') &&
+                  !name.includes('MÉDIA') &&
+                  !name.includes('ECIT') &&
+                  !name.includes('Secretaria') &&
+                  !name.includes('BOLETIM') &&
+                  !name.includes('Professor') &&
+                  !name.includes('Curso');
        }
+
+       // Função extractStudentData removida - não é mais necessária com a nova abordagem de regex global
 
        // Função extractDataFromLine removida - substituída por tryExtractStudent
 
