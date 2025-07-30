@@ -198,6 +198,53 @@
             color: #60a5fa;
         }
 
+        .pdf-converter {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid #333333;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(20px);
+            display: block;
+        }
+
+        .pdf-converter.hidden {
+            display: none;
+        }
+
+        .converter-title {
+            text-align: center;
+            color: #ffffff;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .converter-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .converter-btn {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid #22c55e;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .converter-btn:hover {
+            background: rgba(34, 197, 94, 0.3);
+            border-color: #16a34a;
+        }
+
         .period-selector {
             background: rgba(20, 20, 20, 0.8);
             border: 1px solid #333333;
@@ -703,6 +750,10 @@
                 height: 30px;
                 font-size: 0.9rem;
             }
+
+            .converter-actions {
+                flex-direction: column;
+            }
         }
 
         @media (max-width: 480px) {
@@ -731,7 +782,7 @@
             <h1>SISTEMA DE NOTAS</h1>
             <h2>ECIT HENRIQUE FERNANDES DE FARIAS</h2>
             <div class="description">
-                <p>Sistema automatizado para análise de desempenho acadêmico. Escolha entre upload de PDF do SIAGE ou planilha Excel/CSV. O sistema processará automaticamente os dados dos estudantes incluindo notas, frequência e calculará todas as estatísticas necessárias para relatórios educacionais.</p>
+                <p>Sistema automatizado para análise de desempenho acadêmico. Escolha entre upload de PDF do SIAGE (com conversão automática para Excel) ou planilha Excel/CSV. O sistema processará automaticamente os dados dos estudantes incluindo notas, frequência e calculará todas as estatísticas necessárias para relatórios educacionais.</p>
                 
                 <div class="instructions">
                     <h3>Como usar:</h3>
@@ -740,7 +791,7 @@
                             <span class="step">1</span>
                             <div class="content">
                                 <h4>PDF do SIAGE</h4>
-                                <p>Selecione "PDF do SIAGE", escolha o período (1º, 2º, 3º ou 4º) e faça upload do boletim oficial</p>
+                                <p>Upload do PDF → Converte automaticamente para Excel → Download da planilha convertida</p>
                             </div>
                         </div>
                         <div class="instruction-item">
@@ -765,7 +816,7 @@
                             </div>
                         </div>
                     </div>
-                    <p class="note">📄 <strong>PDF do SIAGE:</strong> Extração automática de nomes, notas do período selecionado e status de frequência diretamente do boletim oficial. 📊 <strong>Planilhas:</strong> Use formato tradicional, opcionalmente inclua coluna de frequência ("Frequente"/"Infrequente"). ✏️ <strong>Manual:</strong> Controle total sobre cada entrada de dados.</p>
+                    <p class="note">📄 <strong>PDF do SIAGE:</strong> Conversão automática para Excel com dados extraídos do boletim. Baixe a planilha convertida e faça upload novamente para análise. 📊 <strong>Planilhas:</strong> Use formato tradicional, opcionalmente inclua coluna de frequência ("Frequente"/"Infrequente"). ✏️ <strong>Manual:</strong> Controle total sobre cada entrada de dados.</p>
                 </div>
             </div>
         </div>
@@ -779,7 +830,18 @@
                     </div>
                 </div>
 
-                <div class="period-selector" id="periodSelector">
+                <div class="pdf-converter" id="pdfConverter">
+                    <div class="converter-title">🔄 Conversor PDF → Excel</div>
+                    <div class="converter-actions">
+                        <button class="converter-btn" id="convertBtn">📄 Converter PDF para Excel</button>
+                        <a class="converter-btn" id="downloadBtn" href="#" download="boletim_convertido.xlsx" style="display: none;">💾 Baixar Excel Convertido</a>
+                    </div>
+                    <p style="text-align: center; color: #888; margin-top: 1rem; font-size: 0.9rem;">
+                        Após converter e baixar, faça upload da planilha Excel gerada para análise completa.
+                    </p>
+                </div>
+
+                <div class="period-selector hidden" id="periodSelector">
                     <div class="period-title">📅 Selecione o Período para Análise:</div>
                     <div class="period-buttons">
                         <button class="period-btn active" data-period="1">1º Período</button>
@@ -791,8 +853,8 @@
 
                 <div class="upload-area" id="uploadArea">
                     <div class="upload-icon">📄</div>
-                    <div class="upload-text" id="uploadText">Clique para selecionar ou arraste seu PDF do SIAGE aqui</div>
-                    <div class="upload-subtext" id="uploadSubtext">Boletim escolar em formato PDF</div>
+                    <div class="upload-text" id="uploadText">Clique para selecionar seu PDF do SIAGE para conversão</div>
+                    <div class="upload-subtext" id="uploadSubtext">Primeiro vamos converter para Excel, depois analisar</div>
                     <input type="file" id="fileInput" accept=".pdf">
                 </div>
 
@@ -843,50 +905,50 @@
                             <div class="input-group">
                                 <label class="input-label">Nome do Estudante</label>
                                 <input type="text" class="input-field" id="studentName" placeholder="Ex: João Silva">
-                            </div>
-                            <div class="input-group">
-                                <label class="input-label">Nota do Período (0-10)</label>
-                                <input type="number" class="input-field" id="studentGrade" placeholder="Ex: 8.5" min="0" max="10" step="0.1">
-                            </div>
-                            <div class="input-group">
-                                <label class="input-label">Frequência</label>
-                                <select class="input-field" id="studentFrequency">
-                                    <option value="Frequente">Frequente</option>
-                                    <option value="Infrequente">Infrequente</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <button class="add-student-btn" id="addStudent">Adicionar Estudante</button>
-                            </div>
-                        </div>
-                        <div class="student-list" id="studentList"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                           </div>
+                           <div class="input-group">
+                               <label class="input-label">Nota do Período (0-10)</label>
+                               <input type="number" class="input-field" id="studentGrade" placeholder="Ex: 8.5" min="0" max="10" step="0.1">
+                           </div>
+                           <div class="input-group">
+                               <label class="input-label">Frequência</label>
+                               <select class="input-field" id="studentFrequency">
+                                   <option value="Frequente">Frequente</option>
+                                   <option value="Infrequente">Infrequente</option>
+                               </select>
+                           </div>
+                           <div class="input-group">
+                               <button class="add-student-btn" id="addStudent">Adicionar Estudante</button>
+                           </div>
+                       </div>
+                       <div class="student-list" id="studentList"></div>
+                   </div>
+               </div>
+           </div>
+       </div>
 
-        <div class="results" id="results">
-            <div class="stats-section">
-                <div class="section-title">📊 Análise Geral de Desempenho</div>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value" id="passRate">0%</div>
-                        <div class="stat-label">Estudantes ≥ 7.0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="failRate">0%</div>
-                        <div class="stat-label">Estudantes < 7.0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="avgGrade">0.0</div>
-                        <div class="stat-label">Média da Turma</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="lowGrades">0%</div>
-                        <div class="stat-label">Notas < 5.0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="frequentStudents">0%</div>
+       <div class="results" id="results">
+           <div class="stats-section">
+               <div class="section-title">📊 Análise Geral de Desempenho</div>
+               <div class="stats-grid">
+                   <div class="stat-card">
+                       <div class="stat-value" id="passRate">0%</div>
+                       <div class="stat-label">Estudantes ≥ 7.0</div>
+                   </div>
+                   <div class="stat-card">
+                       <div class="stat-value" id="failRate">0%</div>
+                       <div class="stat-label">Estudantes < 7.0</div>
+                   </div>
+                   <div class="stat-card">
+                       <div class="stat-value" id="avgGrade">0.0</div>
+                       <div class="stat-label">Média da Turma</div>
+                   </div>
+                   <div class="stat-card">
+                       <div class="stat-value" id="lowGrades">0%</div>
+                       <div class="stat-label">Notas < 5.0</div>
+                   </div>
+                   <div class="stat-card">
+                       <div class="stat-value" id="frequentStudents">0%</div>
                        <div class="stat-label">Frequentes</div>
                    </div>
                    <div class="stat-card">
@@ -985,6 +1047,9 @@
        const manualInput = document.getElementById('manualInput');
        const toggleManual = document.getElementById('toggleManual');
        const addStudentBtn = document.getElementById('addStudent');
+       const pdfConverter = document.getElementById('pdfConverter');
+       const convertBtn = document.getElementById('convertBtn');
+       const downloadBtn = document.getElementById('downloadBtn');
        const periodSelector = document.getElementById('periodSelector');
        const uploadText = document.getElementById('uploadText');
        const uploadSubtext = document.getElementById('uploadSubtext');
@@ -993,6 +1058,7 @@
        let manualMode = false;
        let inputType = 'pdf';
        let selectedPeriod = 1;
+       let convertedData = null;
 
        // Configure PDF.js
        if (typeof pdfjsLib !== 'undefined') {
@@ -1018,14 +1084,21 @@
            });
        });
 
+       // Convert button
+       convertBtn.addEventListener('click', () => {
+           fileInput.click();
+       });
+
        function updateInterface() {
            if (inputType === 'pdf') {
-               periodSelector.classList.remove('hidden');
+               pdfConverter.classList.remove('hidden');
+               periodSelector.classList.add('hidden');
                fileInput.accept = '.pdf';
-               uploadText.textContent = 'Clique para selecionar ou arraste seu PDF do SIAGE aqui';
-               uploadSubtext.textContent = 'Boletim escolar em formato PDF';
+               uploadText.textContent = 'Clique para selecionar seu PDF do SIAGE para conversão';
+               uploadSubtext.textContent = 'Primeiro vamos converter para Excel, depois analisar';
                document.querySelector('.upload-icon').textContent = '📄';
            } else {
+               pdfConverter.classList.add('hidden');
                periodSelector.classList.add('hidden');
                fileInput.accept = '.xlsx,.xls,.csv';
                uploadText.textContent = 'Clique para selecionar ou arraste sua planilha aqui';
@@ -1220,7 +1293,7 @@
            reader.onload = (e) => {
                try {
                    if (inputType === 'pdf') {
-                       processPDF(e.target.result, fileName);
+                       convertPDFToExcel(e.target.result, fileName);
                    } else {
                        let data;
                        if (fileExtension === 'csv') {
@@ -1244,14 +1317,14 @@
            }
        }
 
-       async function processPDF(arrayBuffer, fileName) {
+       async function convertPDFToExcel(arrayBuffer, fileName) {
            try {
                if (typeof pdfjsLib === 'undefined') {
                    showError('Biblioteca PDF.js não carregada. Recarregue a página e tente novamente.');
                    return;
                }
 
-               showSuccess('Processando PDF do SIAGE...');
+               showSuccess('Convertendo PDF para Excel...');
                
                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
                let allText = '';
@@ -1263,170 +1336,48 @@
                    allText += pageText + '\n';
                }
                
-               console.log('Texto extraído do PDF (primeiros 1000 chars):', allText.substring(0, 1000));
+               console.log('Texto extraído do PDF (primeiros 500 chars):', allText.substring(0, 500));
                
-               const students = extractStudentsFromSIAGE(allText);
+               const excelData = extractDataForExcel(allText);
                
-               if (students.length === 0) {
-                   showError(`Não foi possível extrair dados do PDF.
+               if (excelData.length === 0) {
+                   showError(`Não foi possível extrair dados do PDF para conversão.
 
-Verifique se:
-1. É um boletim do SIAGE oficial
-2. O período ${selectedPeriod}º existe no boletim
-3. O PDF contém dados de estudantes válidos
+Possíveis soluções:
+1. Verifique se é um boletim do SIAGE oficial
+2. Tente usar entrada manual
+3. Converta o PDF manualmente para Excel
 
-Debug - Texto encontrado:
-"${allText.substring(0, 300)}..."
-
-Tente usar entrada manual ou uma planilha como alternativa.`);
+Texto encontrado: "${allText.substring(0, 200)}..."`);
                    return;
                }
                
-               console.log('Estudantes extraídos:', students);
-               studentsData = students;
-               showDataPreview(students);
-               calculateStatistics(students, fileName);
+               createExcelFile(excelData, fileName);
                
            } catch (error) {
-               console.error('Erro detalhado:', error);
-               showError('Erro ao processar PDF: ' + error.message + '. Tente usar entrada manual ou planilha.');
+               console.error('Erro na conversão:', error);
+               showError('Erro ao converter PDF: ' + error.message + '. Tente usar entrada manual como alternativa.');
            }
        }
 
-       function extractStudentsFromSIAGE(text) {
+       function extractDataForExcel(text) {
            const students = [];
            const lines = text.split('\n');
            
-           console.log('Total de linhas:', lines.length);
-           
-           let isDataSection = false;
-           let periodColumns = [];
-           
-           // Primeiro, encontrar as colunas de período
-           for (let i = 0; i < lines.length; i++) {
-               const line = lines[i];
-               
-               // Detectar cabeçalho com períodos
-               if (line.includes('MÉDIA DO') && line.includes('PERÍODO')) {
-                   const periodMatches = line.match(/MÉDIA DO (\d+)º PERÍODO/g);
-                   if (periodMatches) {
-                       periodColumns = periodMatches.map(match => {
-                           const num = match.match(/(\d+)º/);
-                           return num ? parseInt(num[1]) : null;
-                       }).filter(n => n !== null);
-                   }
-                   console.log('Períodos encontrados:', periodColumns);
-                   isDataSection = true;
-                   continue;
-               }
-               
-               // Se encontrou os períodos, processar dados dos estudantes
-               if (isDataSection && line.trim()) {
-                   // Pular linhas de cabeçalho
-                   if (line.includes('ESTUDANTES') || line.includes('PERÍODO') || 
-                       line.includes('FREQUÊNCIA') || line.includes('SITUAÇÃO') ||
-                       line.includes('MÉDIA GERAL') || line.includes('RECUPERAÇÃO')) {
-                       continue;
-                   }
-                   
-                   // Tentar extrair dados do estudante - padrão mais flexível
-                   const cleanLine = line.replace(/\s+/g, ' ').trim();
-                   
-                   // Buscar padrões diferentes de linha de estudante
-                   let studentMatch = null;
-                   
-                   // Padrão 1: Nome seguido de notas e frequência
-                   studentMatch = cleanLine.match(/^([A-ZÁÊÍÓÚÂÃÕÇ][a-záêíóúâãõç\s]+[A-ZÁÊÍÓÚÂÃÕÇ\s]*?)\s+((?:\d+[,.]?\d*\s*)+).*?(Frequente|Infrequente).*?Cursando/i);
-                   
-                   // Padrão 2: Sem "Cursando"
-                   if (!studentMatch) {
-                       studentMatch = cleanLine.match(/^([A-ZÁÊÍÓÚÂÃÕÇ][a-záêíóúâãõç\s]+[A-ZÁÊÍÓÚÂÃÕÇ\s]*?)\s+((?:\d+[,.]?\d*\s*)+).*?(Frequente|Infrequente)/i);
-                   }
-                   
-                   // Padrão 3: Mais flexível
-                   if (!studentMatch) {
-                       studentMatch = cleanLine.match(/^([A-ZÁÊÍÓÚÂÃÕÇ][a-záêíóúâãõç\s]{3,50}?)\s+((?:\d+[,.]?\d*\s*){1,4}).*?(Frequente|Infrequente)/i);
-                   }
-                   
-                   // Padrão 4: Super flexível para debugging
-                   if (!studentMatch && cleanLine.length > 30) {
-                       studentMatch = cleanLine.match(/^([A-ZÁÊÍÓÚÂÃÕÇ][a-záêíóúâãõç\s]+)\s.*?(\d+[,.]?\d*)\s.*?(Frequente|Infrequente|Cursando)/i);
-                   }
-                   
-                   if (studentMatch) {
-                       console.log('Match encontrado:', studentMatch);
-                       const name = studentMatch[1].trim();
-                       const gradesText = studentMatch[2] || '';
-                       let frequency = studentMatch[3] || 'Frequente';
-                       
-                       // Limpar frequency
-                       if (frequency.toLowerCase().includes('infrequente')) {
-                           frequency = 'Infrequente';
-                       } else {
-                           frequency = 'Frequente';
-                       }
-                       
-                       // Extrair todas as notas da linha
-                       const allGrades = gradesText.match(/\d+[,.]?\d*/g) || [];
-                       if (allGrades.length > 0) {
-                           const gradeValues = allGrades.map(g => {
-                               const grade = parseFloat(g.replace(',', '.'));
-                               return isNaN(grade) ? null : grade;
-                           }).filter(g => g !== null && g >= 0 && g <= 10);
-                           
-                           if (gradeValues.length > 0) {
-                               // Usar a nota do período selecionado ou a primeira disponível
-                               let gradeToUse = gradeValues[0]; // padrão: primeira nota
-                               
-                               if (periodColumns.length > 0) {
-                                   const periodIndex = periodColumns.indexOf(selectedPeriod);
-                                   if (periodIndex >= 0 && periodIndex < gradeValues.length) {
-                                       gradeToUse = gradeValues[periodIndex];
-                                   }
-                               }
-                               
-                               students.push({
-                                   id: `EST${students.length + 1}`,
-                                   name: name,
-                                   grades: [gradeToUse],
-                                   frequency: frequency,
-                                   period: selectedPeriod
-                               });
-                               
-                               console.log('Estudante adicionado:', {name, grade: gradeToUse, frequency});
-                           }
-                       }
-                   }
-               }
-           }
-           
-           // Se não encontrou nada com o método principal, tentar método alternativo
-           if (students.length === 0) {
-               console.log('Tentando método alternativo...');
-               return extractStudentsAlternativeMethod(text);
-           }
-           
-           console.log('Total de estudantes extraídos:', students.length);
-           return students;
-       }
-
-       function extractStudentsAlternativeMethod(text) {
-           const students = [];
-           const lines = text.split('\n');
-           
-           console.log('Método alternativo - analisando linhas...');
+           console.log('Extraindo dados para Excel...');
            
            for (let i = 0; i < lines.length; i++) {
                const line = lines[i];
                
-               // Método mais simples: procurar por qualquer linha com nome e números
-               if (line.length > 20 && /[A-Z]/.test(line) && /\d/.test(line)) {
-                   // Tentar encontrar nome no início da linha
-                   const nameMatch = line.match(/^([A-ZÁÊÍÓÚÂÃÕÇ][a-záêíóúâãõç\s]+[A-ZÁÊÍÓÚÂÃÕÇ]*)/);
+               // Procurar por linhas que parecem conter dados de estudantes
+               if (line.length > 30 && /[A-Z]/.test(line) && /\d/.test(line)) {
+                   
+                   // Padrão flexível para capturar nome
+                   const nameMatch = line.match(/^([A-ZÁÊÍÓÚÂÃÕÇ][a-záêíóúâãõç\s]+[A-ZÁÊÍÓÚÂÃÕÇ\s]*)/);
                    if (nameMatch) {
                        const name = nameMatch[1].trim();
                        
-                       // Procurar por números que parecem notas
+                       // Extrair todos os números que parecem ser notas
                        const numbers = line.match(/\b\d{1,2}[,.]?\d?\b/g);
                        if (numbers) {
                            const validGrades = numbers.map(n => {
@@ -1435,25 +1386,82 @@ Tente usar entrada manual ou uma planilha como alternativa.`);
                            }).filter(g => g !== null);
                            
                            if (validGrades.length > 0) {
-                               // Determinar frequência
+                               // Detectar frequência
                                const frequency = line.toLowerCase().includes('infrequente') ? 'Infrequente' : 'Frequente';
                                
-                               students.push({
-                                   id: `EST${students.length + 1}`,
-                                   name: name,
-                                   grades: [validGrades[0]], // usar primeira nota válida
-                                   frequency: frequency
-                               });
+                               // Criar linha para Excel
+                               const studentRow = [
+                                   students.length + 1, // ID
+                                   name, // Nome
+                                   ...validGrades, // Notas
+                                   frequency // Frequência
+                               ];
                                
-                               console.log('Método alternativo - estudante:', {name, grade: validGrades[0], frequency});
+                               students.push(studentRow);
+                               console.log('Estudante extraído:', {name, grades: validGrades, frequency});
                            }
                        }
                    }
                }
            }
            
-           console.log('Método alternativo - total extraído:', students.length);
-           return students;
+           // Adicionar cabeçalho
+           if (students.length > 0) {
+               const maxGrades = Math.max(...students.map(s => s.length - 3)); // -3 para ID, Nome, Frequência
+               const headers = ['ID', 'Nome'];
+               for (let i = 1; i <= maxGrades; i++) {
+                   headers.push(`Nota ${i}`);
+               }
+               headers.push('Frequência');
+               
+               return [headers, ...students];
+           }
+           
+           return [];
+       }
+
+       function createExcelFile(data, originalFileName) {
+           try {
+               if (typeof XLSX === 'undefined') {
+                   showError('Biblioteca XLSX não carregada. Recarregue a página.');
+                   return;
+               }
+
+               const workbook = XLSX.utils.book_new();
+               const worksheet = XLSX.utils.aoa_to_sheet(data);
+               
+               // Ajustar largura das colunas
+               const colWidths = [];
+               for (let i = 0; i < data[0].length; i++) {
+                   const maxLength = Math.max(...data.map(row => 
+                       row[i] ? row[i].toString().length : 0
+                   ));
+                   colWidths.push({ width: Math.min(Math.max(maxLength, 10), 30) });
+               }
+               worksheet['!cols'] = colWidths;
+               
+               XLSX.utils.book_append_sheet(workbook, worksheet, 'Boletim SIAGE');
+               
+               // Gerar arquivo
+               const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+               const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+               
+               // Criar link de download
+               const url = window.URL.createObjectURL(blob);
+               downloadBtn.href = url;
+               downloadBtn.download = originalFileName.replace('.pdf', '_convertido.xlsx');
+               downloadBtn.style.display = 'inline-block';
+               
+               convertedData = data;
+               
+               showSuccess(`PDF convertido com sucesso! ${data.length - 1} estudantes encontrados. 
+               
+Clique no botão "Baixar Excel Convertido" para baixar a planilha.
+Depois faça upload da planilha baixada para análise completa.`);
+               
+           } catch (error) {
+               showError('Erro ao criar arquivo Excel: ' + error.message);
+           }
        }
 
        function parseCSV(csvText) {
