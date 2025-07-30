@@ -243,6 +243,8 @@
             font-weight: 600;
             font-size: 0.9rem;
             color: #ffffff;
+            position: sticky;
+            top: 0;
         }
 
         .table-row {
@@ -527,6 +529,28 @@
             100% { transform: rotate(360deg); }
         }
 
+        .debug-section {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid #333333;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .debug-text {
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid #444444;
+            border-radius: 6px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #cccccc;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
         @media (max-width: 1200px) {
             .instruction-grid {
                 grid-template-columns: 1fr;
@@ -563,6 +587,11 @@
                 height: 30px;
                 font-size: 0.9rem;
             }
+
+            .table-header, .table-row {
+                grid-template-columns: 150px 60px 60px 60px 60px 80px;
+                font-size: 0.8rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -575,7 +604,7 @@
             }
 
             .student-item {
-                grid-template-columns: 200px 50px 50px 50px 50px 70px 40px;
+                grid-template-columns: 150px 50px 50px 50px 50px 70px 40px;
                 font-size: 0.8rem;
             }
         }
@@ -659,8 +688,14 @@
                     </div>
                 </div>
 
+                <div class="debug-section" id="debugSection">
+                    <div class="preview-title">🔍 Debug - Texto Extraído do PDF</div>
+                    <div class="debug-text" id="debugText"></div>
+                </div>
+
                 <div class="manual-toggle">
                     <button class="toggle-btn" id="toggleManual">📝 Adicionar/Editar Dados Manualmente</button>
+                    <button class="toggle-btn" id="toggleDebug" style="margin-left: 1rem;">🔍 Mostrar Debug</button>
                 </div>
 
                 <div class="manual-input" id="manualInput">
@@ -710,22 +745,19 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-value" id="passRate">0%</div>
-                        <div class="stat-label">Estudantes ≥ 7.0 (1º Período)</div>
+                        <div class="stat-label">Estudantes ≥ 7.0</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="failRate">0%</div>
-                        <div class="stat-label">Estudantes < 7.0 (1º Período)</div>
+                        <div class="stat-label">Estudantes < 7.0</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="avgGrade">0.0</div>
-                        <div class="stat-label">Média da Turma (1º Período)</div>
+                        <div class="stat-label">Média da Turma</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="lowGrades">0%</div>
-                        <div class="stat-label">Notas < 5.0 (1º Período)</div>
-                        <div style="font-size: 0.75rem; color: #666; margin-top: 0.5rem;" id="lowGradesDetail">
-                            0 estudantes com média < 5.0 no 1º período
-                        </div>
+                        <div class="stat-label">Notas < 5.0</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="frequentStudents">0%</div>
@@ -762,11 +794,15 @@
         const dataPreview = document.getElementById('dataPreview');
         const manualInput = document.getElementById('manualInput');
         const toggleManual = document.getElementById('toggleManual');
+        const toggleDebug = document.getElementById('toggleDebug');
+        const debugSection = document.getElementById('debugSection');
         const addStudentBtn = document.getElementById('addStudent');
         const loading = document.getElementById('loading');
 
         let studentsData = [];
         let manualMode = false;
+        let debugMode = false;
+        let extractedText = '';
 
         // Upload area interactions
         uploadArea.addEventListener('click', () => fileInput.click());
@@ -800,6 +836,20 @@
            } else {
                manualInput.style.display = 'none';
                toggleManual.textContent = '📝 Adicionar/Editar Dados Manualmente';
+           }
+       });
+
+       toggleDebug.addEventListener('click', () => {
+           debugMode = !debugMode;
+           if (debugMode) {
+               debugSection.style.display = 'block';
+               toggleDebug.textContent = '🔍 Ocultar Debug';
+               if (extractedText) {
+                   document.getElementById('debugText').textContent = extractedText;
+               }
+           } else {
+               debugSection.style.display = 'none';
+               toggleDebug.textContent = '🔍 Mostrar Debug';
            }
        });
 
@@ -878,6 +928,7 @@
            
            studentsData.push(student);
            
+           // Limpar formulário
            document.getElementById('studentName').value = '';
            document.getElementById('period1').value = '';
            document.getElementById('period2').value = '';
@@ -901,10 +952,10 @@
                
                item.innerHTML = `
                    <div>${student.name}</div>
-                   <div>${student.period1 ? student.period1.toFixed(1) : '-'}</div>
-                   <div>${student.period2 ? student.period2.toFixed(1) : '-'}</div>
-                   <div>${student.period3 ? student.period3.toFixed(1) : '-'}</div>
-                   <div>${student.period4 ? student.period4.toFixed(1) : '-'}</div>
+                   <div>${student.period1 !== null ? student.period1.toFixed(1) : '-'}</div>
+                   <div>${student.period2 !== null ? student.period2.toFixed(1) : '-'}</div>
+                   <div>${student.period3 !== null ? student.period3.toFixed(1) : '-'}</div>
+                   <div>${student.period4 !== null ? student.period4.toFixed(1) : '-'}</div>
                    <div>${frequency}</div>
                    <button class="delete-btn" onclick="removeStudent(${index})">✕</button>
                `;
@@ -919,8 +970,10 @@
            
            if (studentsData.length > 0) {
                calculateStatistics(studentsData, 'Entrada Manual');
+               showDataPreview(studentsData);
            } else {
                results.style.display = 'none';
+               dataPreview.style.display = 'none';
                showSuccess('Todos os estudantes foram removidos');
            }
        }
@@ -959,11 +1012,18 @@
                    fullText += pageText + '\n';
                }
                
+               extractedText = fullText;
+               
+               // Atualizar debug se estiver ativo
+               if (debugMode) {
+                   document.getElementById('debugText').textContent = extractedText;
+               }
+               
                // Processar o texto extraído
                const students = parseBoletimText(fullText);
                
                if (students.length === 0) {
-                   showError('Não foi possível extrair dados do PDF. Verifique se é um boletim escolar válido da SEE-PB.');
+                   showError('Não foi possível extrair dados do PDF. Verifique se é um boletim escolar válido da SEE-PB. Use o botão Debug para ver o texto extraído.');
                    return;
                }
                
@@ -981,28 +1041,43 @@
            const students = [];
            const lines = text.split('\n');
            
-           // Procurar por padrões de dados do boletim
-           let inStudentData = false;
+           let inStudentSection = false;
            
            for (let i = 0; i < lines.length; i++) {
                const line = lines[i].trim();
                
-               // Identificar início da tabela de estudantes
-               if (line.includes('ESTUDANTES') && line.includes('PERÍODO')) {
-                   inStudentData = true;
+               // Identificar seções de estudantes
+               if (line.toLowerCase().includes('estudante') || 
+                   line.toLowerCase().includes('aluno') ||
+                   line.includes('PERÍODO') ||
+                   line.includes('1º') ||
+                   line.includes('2º') ||
+                   line.includes('NOME')) {
+                   inStudentSection = true;
                    continue;
                }
                
                // Parar se encontrar fim dos dados
-               if (line.includes('Data da emissão') || line.includes('Usuário:')) {
+               if (line.toLowerCase().includes('data da emissão') || 
+                   line.toLowerCase().includes('usuário') ||
+                   line.toLowerCase().includes('total') ||
+                   line.toLowerCase().includes('média') ||
+                   line.toLowerCase().includes('observações')) {
                    break;
                }
                
-               if (inStudentData && line.length > 0) {
-                   // Tentar extrair dados do estudante da linha
+               if (inStudentSection && line.length > 5) {
+                   // Tentar extrair dados do estudante
                    const student = parseStudentLine(line);
-                   if (student) {
-                       students.push(student);
+                   if (student && student.name && student.name.length > 2) {
+                       // Verificar se não é cabeçalho ou linha inválida
+                       if (!student.name.toLowerCase().includes('período') &&
+                           !student.name.toLowerCase().includes('nome') &&
+                           !student.name.toLowerCase().includes('estudante') &&
+                           !student.name.toLowerCase().includes('média') &&
+                           !student.name.toLowerCase().includes('total')) {
+                           students.push(student);
+                       }
                    }
                }
            }
@@ -1011,36 +1086,60 @@
        }
 
        function parseStudentLine(line) {
-           // Regex para capturar nome e notas
-           // Busca por padrão: Nome seguido de números (notas) e frequência
+           // Limpar a linha
+           line = line.replace(/\s+/g, ' ').trim();
+           
+           // Padrões mais robustos para extrair dados
            const patterns = [
-               // Padrão 1: Nome Completo seguido de notas separadas por espaços
-               /^([A-ZÁÊÇÕ][a-záêçõüà\s]+?)\s+(\d+[,.]?\d*)\s+(\d+[,.]?\d*)\s*(-|)?\s*(-|)?\s*(Frequente|Infrequente|)/i,
-               // Padrão 2: Mais flexível
-               /([A-ZÁÊÇÕ][a-záêçõüà\s]{3,}?)\s+(\d+[,.]?\d*)\s+(\d+[,.]?\d*)/i
+               // Padrão 1: Nome seguido de números e frequência
+               /^([A-ZÁÊÇÕÜÀÉÍÓÚ][a-záêçõüàéíóú\s]+?)\s+(\d+[,.]?\d*)\s+(\d+[,.]?\d*)\s*(\d+[,.]?\d*)?\s*(\d+[,.]?\d*)?\s*(Frequente|Infrequente)?/i,
+               
+               // Padrão 2: Separado por múltiplos espaços
+               /([A-ZÁÊÇÕÜÀÉÍÓÚ][a-záêçõüàéíóú\s]{3,}?)\s{2,}(\d+[,.]?\d*)\s+(\d+[,.]?\d*)/i,
+               
+               // Padrão 3: Com vírgulas como separadores
+               /([A-ZÁÊÇÕÜÀÉÍÓÚ][a-záêçõüàéíóú\s]+?)[,\s]+(\d+[,.]?\d*)[,\s]+(\d+[,.]?\d*)/i,
+               
+               // Padrão 4: Nome completo seguido de notas
+               /^([A-ZÁÊÇÕÜÀÉÍÓÚ][a-záêçõüàéíóú\s]+(?:DA|DE|DO|DOS|DAS|E)\s+[A-ZÁÊÇÕÜÀÉÍÓÚ][a-záêçõüàéíóú\s]*)\s+(\d+[,.]?\d*)\s+(\d+[,.]?\d*)/i
            ];
            
            for (const pattern of patterns) {
                const match = line.match(pattern);
                if (match) {
-                   const name = match[1].trim();
-                   const period1 = parseFloat(match[2].replace(',', '.'));
-                   const period2 = parseFloat(match[3].replace(',', '.'));
+                   let name = match[1].trim();
+                   let period1 = match[2] ? parseFloat(match[2].replace(',', '.')) : null;
+                   let period2 = match[3] ? parseFloat(match[3].replace(',', '.')) : null;
+                   let period3 = match[4] ? parseFloat(match[4].replace(',', '.')) : null;
+                   let period4 = match[5] ? parseFloat(match[5].replace(',', '.')) : null;
+                   let frequency = match[6] || 'Frequente';
                    
-                   // Buscar frequência na linha
-                   let frequency = 'Frequente';
-                   if (line.toLowerCase().includes('infrequente')) {
-                       frequency = 'Infrequente';
+                   // Limpar nome
+                   name = name.replace(/^\d+\s*/, ''); // Remove números no início
+                   name = name.replace(/\s{2,}/g, ' '); // Remove espaços duplos
+                   
+                   // Buscar frequência na linha se não encontrada no match
+                   if (!match[6]) {
+                       if (line.toLowerCase().includes('infrequente')) {
+                           frequency = 'Infrequente';
+                       } else {
+                           frequency = 'Frequente';
+                       }
                    }
                    
-                   // Validar se é realmente um nome de estudante (não cabeçalho)
-                   if (name.length > 3 && !name.includes('PERÍODO') && !name.includes('MÉDIA')) {
+                   // Validações
+                   if (name.length >= 3 && 
+                       !name.toLowerCase().includes('período') &&
+                       !name.toLowerCase().includes('nome') &&
+                       !name.toLowerCase().includes('média') &&
+                       period1 !== null && !isNaN(period1) && period1 >= 0 && period1 <= 10) {
+                       
                        return {
                            name: name,
-                           period1: isNaN(period1) ? 0 : period1,
-                           period2: isNaN(period2) ? 0 : period2,
-                           period3: null,
-                           period4: null,
+                           period1: period1,
+                           period2: period2 && !isNaN(period2) ? period2 : null,
+                           period3: period3 && !isNaN(period3) ? period3 : null,
+                           period4: period4 && !isNaN(period4) ? period4 : null,
                            frequency: frequency
                        };
                    }
@@ -1063,47 +1162,49 @@
            let frequentCount = 0;
            let infrequentCount = 0;
            let totalGradeSum = 0;
+           let validGradeCount = 0;
 
            students.forEach(student => {
-               // Usar apenas o 1º período - se for null, undefined, "--" ou vazio = 0
-               let period1Grade = student.period1;
-               if (period1Grade === null || period1Grade === undefined || period1Grade === '--' || period1Grade === '' || isNaN(period1Grade)) {
-                   period1Grade = 0;
-               } else {
-                   period1Grade = parseFloat(period1Grade);
-               }
+               // Calcular média dos períodos disponíveis
+               const grades = [student.period1, student.period2, student.period3, student.period4].filter(g => g !== null && g !== undefined && !isNaN(g));
                
-               // Todos os cálculos baseados APENAS no 1º período
-               if (period1Grade >= 7.0) passCount++;
-               if (period1Grade < 5.0) lowGradeCount++;
-
-               totalGradeSum += period1Grade;
+               if (grades.length > 0) {
+                   const average = grades.reduce((sum, grade) => sum + grade, 0) / grades.length;
+                   
+                   if (average >= 7.0) passCount++;
+                   if (average < 5.0) lowGradeCount++;
+                   
+                   totalGradeSum += average;
+                   validGradeCount++;
+               }
 
                if (student.frequency === 'Frequente') frequentCount++;
                else if (student.frequency === 'Infrequente') infrequentCount++;
            });
 
-           const failCount = totalStudents - passCount;
+           const failCount = validGradeCount - passCount;
            
-           const passRate = Math.round((passCount / totalStudents) * 100);
-           const failRate = Math.round((failCount / totalStudents) * 100);
-           const lowGradeRate = Math.round((lowGradeCount / totalStudents) * 100);
+           const passRate = validGradeCount > 0 ? Math.round((passCount / validGradeCount) * 100) : 0;
+           const failRate = validGradeCount > 0 ? Math.round((failCount / validGradeCount) * 100) : 0;
+           const lowGradeRate = validGradeCount > 0 ? Math.round((lowGradeCount / validGradeCount) * 100) : 0;
            const frequentRate = Math.round((frequentCount / totalStudents) * 100);
            const infrequentRate = Math.round((infrequentCount / totalStudents) * 100);
-           const classAverage = Math.round((totalGradeSum / totalStudents) * 10) / 10;
+           const classAverage = validGradeCount > 0 ? (totalGradeSum / validGradeCount) : 0;
 
            document.getElementById('passRate').textContent = passRate + '%';
            document.getElementById('failRate').textContent = failRate + '%';
            document.getElementById('avgGrade').textContent = classAverage.toFixed(1);
            document.getElementById('lowGrades').textContent = lowGradeRate + '%';
-           document.getElementById('lowGradesDetail').textContent = `${lowGradeCount} estudantes com média < 5.0 no 1º período`;
            document.getElementById('frequentStudents').textContent = frequentRate + '%';
            document.getElementById('infrequentStudents').textContent = infrequentRate + '%';
 
            showFileInfo(fileName, totalStudents);
-           showSuccess(`Análise concluída! ${totalStudents} estudantes processados. Média geral do 1º período: ${classAverage.toFixed(1)} | Frequentes: ${frequentRate}%`);
+           showSuccess(`Análise concluída! ${totalStudents} estudantes processados. Média geral: ${classAverage.toFixed(1)} | Frequentes: ${frequentRate}% | Aprovados (≥7.0): ${passRate}%`);
            results.style.display = 'block';
        }
+
+       // Tornar funções globais para onclick
+       window.removeStudent = removeStudent;
    </script>
 </body>
 </html>
