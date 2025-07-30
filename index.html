@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Notas - ECIT Henrique Fernandes de Farias</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -82,7 +83,7 @@
 
         .instruction-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
@@ -163,6 +164,8 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            position: relative;
+            user-select: none;
         }
 
         .upload-area:hover {
@@ -196,6 +199,9 @@
 
         #fileInput {
             display: none;
+            opacity: 0;
+            position: absolute;
+            z-index: -1;
         }
 
         .results {
@@ -235,7 +241,7 @@
 
         .table-header {
             display: grid;
-            grid-template-columns: 200px 80px 80px 80px 80px 100px;
+            grid-template-columns: 200px 80px 100px;
             gap: 1rem;
             padding: 1rem;
             background: rgba(40, 40, 40, 0.8);
@@ -243,13 +249,11 @@
             font-weight: 600;
             font-size: 0.9rem;
             color: #ffffff;
-            position: sticky;
-            top: 0;
         }
 
         .table-row {
             display: grid;
-            grid-template-columns: 200px 80px 80px 80px 80px 100px;
+            grid-template-columns: 200px 80px 100px;
             gap: 1rem;
             padding: 0.8rem 1rem;
             border-bottom: 1px solid #333333;
@@ -259,122 +263,6 @@
 
         .table-row:hover {
             background: rgba(50, 50, 50, 0.5);
-        }
-
-        .manual-input {
-            display: none;
-            margin-top: 1.5rem;
-        }
-
-        .manual-section {
-            background: rgba(20, 20, 20, 0.8);
-            border: 1px solid #333333;
-            border-radius: 12px;
-            padding: 2rem;
-            backdrop-filter: blur(20px);
-        }
-
-        .input-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .input-label {
-            color: #cccccc;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .input-field {
-            background: rgba(30, 30, 30, 0.8);
-            border: 1px solid #444444;
-            border-radius: 6px;
-            padding: 0.8rem;
-            color: #ffffff;
-            font-size: 0.9rem;
-            transition: border-color 0.2s ease;
-        }
-
-        .input-field:focus {
-            outline: none;
-            border-color: #666666;
-        }
-
-        .add-student-btn {
-            background: #444444;
-            color: #ffffff;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .add-student-btn:hover {
-            background: #555555;
-        }
-
-        .manual-toggle {
-            text-align: center;
-            margin: 1rem 0;
-        }
-
-        .toggle-btn {
-            background: rgba(30, 30, 30, 0.8);
-            color: #cccccc;
-            border: 1px solid #444444;
-            padding: 0.8rem 1.5rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .toggle-btn:hover {
-            background: rgba(40, 40, 40, 0.8);
-            border-color: #555555;
-        }
-
-        .student-list {
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 1rem;
-        }
-
-        .student-item {
-            display: grid;
-            grid-template-columns: 200px 60px 60px 60px 60px 80px 50px;
-            gap: 1rem;
-            padding: 0.8rem;
-            background: rgba(30, 30, 30, 0.5);
-            border: 1px solid #444444;
-            border-radius: 6px;
-            margin-bottom: 0.5rem;
-            align-items: center;
-            font-size: 0.85rem;
-        }
-
-        .delete-btn {
-            background: #ff4757;
-            color: white;
-            border: none;
-            padding: 0.3rem 0.6rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
-
-        .delete-btn:hover {
-            background: #ff3838;
         }
 
         .stats-section {
@@ -530,25 +418,42 @@
         }
 
         .debug-section {
-            background: rgba(20, 20, 20, 0.8);
-            border: 1px solid #333333;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-top: 1rem;
             display: none;
+            background: rgba(30, 30, 30, 0.8);
+            border: 1px solid #444444;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
         }
 
         .debug-text {
-            background: rgba(10, 10, 10, 0.8);
-            border: 1px solid #444444;
-            border-radius: 6px;
+            display: none;
+            background: #222;
+            border: 1px solid #555;
+            border-radius: 4px;
             padding: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
             font-family: monospace;
             font-size: 0.8rem;
-            color: #cccccc;
-            max-height: 200px;
-            overflow-y: auto;
+            color: #ccc;
             white-space: pre-wrap;
+        }
+
+        .toggle-btn {
+            background: rgba(30, 30, 30, 0.8);
+            color: #cccccc;
+            border: 1px solid #444444;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(40, 40, 40, 0.8);
+            border-color: #555555;
         }
 
         @media (max-width: 1200px) {
@@ -587,11 +492,6 @@
                 height: 30px;
                 font-size: 0.9rem;
             }
-
-            .table-header, .table-row {
-                grid-template-columns: 150px 60px 60px 60px 60px 80px;
-                font-size: 0.8rem;
-            }
         }
 
         @media (max-width: 480px) {
@@ -602,11 +502,6 @@
             .stats-grid {
                 grid-template-columns: 1fr;
             }
-
-            .student-item {
-                grid-template-columns: 150px 50px 50px 50px 50px 70px 40px;
-                font-size: 0.8rem;
-            }
         }
     </style>
 </head>
@@ -616,7 +511,7 @@
             <h1>SISTEMA DE NOTAS</h1>
             <h2>ECIT HENRIQUE FERNANDES DE FARIAS</h2>
             <div class="description">
-                <p>Sistema automatizado para análise de boletins escolares em PDF. Faça upload do boletim da turma em formato PDF ou adicione dados manualmente. O sistema extrairá automaticamente as notas dos períodos e calculará as estatísticas de desempenho.</p>
+                <p>Sistema automatizado para análise de boletins escolares. Faça upload do boletim da turma em formato PDF ou Excel. O sistema extrairá automaticamente as notas dos períodos e calculará as estatísticas de desempenho.</p>
                 
                 <div class="instructions">
                     <h3>Como usar:</h3>
@@ -624,26 +519,19 @@
                         <div class="instruction-item">
                             <span class="step">1</span>
                             <div>
-                                <h4>Upload do PDF</h4>
-                                <p>Arquivo PDF do boletim escolar com: Nome do Estudante, Notas dos 4 Períodos e Status de Frequência</p>
+                                <h4>Upload do Arquivo</h4>
+                                <p>Arquivo PDF do boletim escolar da SEE-PB ou planilha Excel com: Nome do Estudante, Nota do 1º Período e Status de Frequência</p>
                             </div>
                         </div>
                         <div class="instruction-item">
                             <span class="step">2</span>
                             <div>
-                                <h4>Entrada Manual</h4>
-                                <p>Adicione estudantes individualmente com nome, notas dos 4 períodos e status de frequência</p>
-                            </div>
-                        </div>
-                        <div class="instruction-item">
-                            <span class="step">3</span>
-                            <div>
                                 <h4>Análise Automática</h4>
-                                <p>Sistema gera relatório completo de desempenho: aprovação, frequência e médias da turma</p>
+                                <p>Sistema converte PDF para formato Excel internamente e gera relatório completo de desempenho da turma automaticamente</p>
                             </div>
                         </div>
                     </div>
-                    <p class="note">📋 <strong>PDF:</strong> Boletim escolar da SEE-PB com formato padrão. 📝 <strong>Manual:</strong> Controle total sobre dados inseridos. 📊 <strong>Relatórios:</strong> Análise completa automatizada.</p>
+                    <p class="note">📋 <strong>PDF:</strong> Boletim escolar da SEE-PB com formato padrão. 📊 <strong>Excel:</strong> Planilha com colunas organizadas. 📈 <strong>Relatórios:</strong> Análise completa automatizada.</p>
                 </div>
             </div>
         </div>
@@ -652,14 +540,17 @@
             <div class="upload-section">
                 <div class="upload-area" id="uploadArea">
                     <div class="upload-icon">📋</div>
-                    <div class="upload-text">Clique para selecionar ou arraste seu PDF aqui</div>
-                    <div class="upload-subtext">Suporte para arquivos PDF de boletins escolares</div>
-                    <input type="file" id="fileInput" accept=".pdf">
+                    <div class="upload-text">Clique para selecionar ou arraste seu arquivo aqui</div>
+                    <div class="upload-subtext">Suporte para arquivos PDF de boletins escolares ou Excel (.xlsx, .xls)</div>
+                    <input type="file" id="fileInput" accept=".pdf,.xlsx,.xls" style="display: none;">
+                    <button type="button" id="uploadBtn" style="background: #444; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; margin-top: 1rem; cursor: pointer; font-size: 1rem;">
+                        📁 Selecionar Arquivo
+                    </button>
                 </div>
 
                 <div class="loading" id="loading">
                     <div class="loading-spinner"></div>
-                    <p>Processando PDF... Por favor, aguarde.</p>
+                    <p>Processando arquivo... Por favor, aguarde.</p>
                 </div>
 
                 <div class="messages">
@@ -671,69 +562,23 @@
                     </div>
                 </div>
 
+                <div class="debug-section" id="debugSection">
+                    <h4 style="color: #fff; margin-bottom: 1rem;">🔍 Debug - Texto Extraído:</h4>
+                    <button id="debugBtn" class="toggle-btn">📋 Mostrar Texto Extraído</button>
+                    <div id="debugText" class="debug-text"></div>
+                </div>
+
                 <div class="data-preview" id="dataPreview">
                     <div class="preview-section">
-                        <div class="preview-title">📋 Dados Extraídos do PDF</div>
+                        <div class="preview-title">📋 Dados Extraídos</div>
                         <div class="data-table">
                             <div class="table-header">
                                 <div>Nome</div>
                                 <div>1º Per.</div>
-                                <div>2º Per.</div>
-                                <div>3º Per.</div>
-                                <div>4º Per.</div>
                                 <div>Frequência</div>
                             </div>
                             <div id="dataTableBody"></div>
                         </div>
-                    </div>
-                </div>
-
-                <div class="debug-section" id="debugSection">
-                    <div class="preview-title">🔍 Debug - Texto Extraído do PDF</div>
-                    <div class="debug-text" id="debugText"></div>
-                </div>
-
-                <div class="manual-toggle">
-                    <button class="toggle-btn" id="toggleManual">📝 Adicionar/Editar Dados Manualmente</button>
-                    <button class="toggle-btn" id="toggleDebug" style="margin-left: 1rem;">🔍 Mostrar Debug</button>
-                </div>
-
-                <div class="manual-input" id="manualInput">
-                    <div class="manual-section">
-                        <div class="preview-title">✏️ Entrada Manual de Dados</div>
-                        <div class="input-grid">
-                            <div class="input-group">
-                                <label class="input-label">Nome</label>
-                                <input type="text" class="input-field" id="studentName" placeholder="Nome do Estudante">
-                            </div>
-                            <div class="input-group">
-                                <label class="input-label">1º Período</label>
-                                <input type="number" class="input-field" id="period1" placeholder="0-10" min="0" max="10" step="0.1">
-                            </div>
-                            <div class="input-group">
-                                <label class="input-label">2º Período</label>
-                                <input type="number" class="input-field" id="period2" placeholder="0-10" min="0" max="10" step="0.1">
-                            </div>
-                            <div class="input-group">
-                                <label class="input-label">3º Período</label>
-                                <input type="number" class="input-field" id="period3" placeholder="0-10" min="0" max="10" step="0.1">
-                            </div>
-                            <div class="input-group">
-                                <label class="input-label">4º Período</label>
-                                <input type="number" class="input-field" id="period4" placeholder="0-10" min="0" max="10" step="0.1">
-                            </div>
-                            <div class="input-group">
-                                <label class="input-label">Frequência</label>
-                                <select class="input-field" id="studentFrequency">
-                                    <option value="Frequente">Frequente</option>
-                                    <option value="Infrequente">Infrequente</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <button class="add-student-btn" id="addStudent">Adicionar Estudante</button>
-                            </div>
-                        </div>
-                        <div class="student-list" id="studentList"></div>
                     </div>
                 </div>
             </div>
@@ -745,19 +590,22 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-value" id="passRate">0%</div>
-                        <div class="stat-label">Estudantes ≥ 7.0</div>
+                        <div class="stat-label">Estudantes ≥ 7.0 (1º Período)</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="failRate">0%</div>
-                        <div class="stat-label">Estudantes < 7.0</div>
+                        <div class="stat-label">Estudantes < 7.0 (1º Período)</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="avgGrade">0.0</div>
-                        <div class="stat-label">Média da Turma</div>
+                        <div class="stat-label">Média da Turma (1º Período)</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="lowGrades">0%</div>
-                        <div class="stat-label">Notas < 5.0</div>
+                        <div class="stat-label">Notas < 5.0 (1º Período)</div>
+                        <div style="font-size: 0.75rem; color: #666; margin-top: 0.5rem;" id="lowGradesDetail">
+                            0 estudantes com média < 5.0 no 1º período
+                        </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="frequentStudents">0%</div>
@@ -785,75 +633,74 @@
         // Configurar PDF.js
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+        // Elementos do DOM
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
         const errorMsg = document.getElementById('errorMsg');
         const successMsg = document.getElementById('successMsg');
         const fileInfo = document.getElementById('fileInfo');
         const results = document.getElementById('results');
         const dataPreview = document.getElementById('dataPreview');
-        const manualInput = document.getElementById('manualInput');
-        const toggleManual = document.getElementById('toggleManual');
-        const toggleDebug = document.getElementById('toggleDebug');
-        const debugSection = document.getElementById('debugSection');
-        const addStudentBtn = document.getElementById('addStudent');
         const loading = document.getElementById('loading');
+        const debugSection = document.getElementById('debugSection');
+        const debugBtn = document.getElementById('debugBtn');
+        const debugText = document.getElementById('debugText');
 
         let studentsData = [];
-        let manualMode = false;
-        let debugMode = false;
         let extractedText = '';
 
-        // Upload area interactions
-        uploadArea.addEventListener('click', () => fileInput.click());
+        // Debug button toggle
+        debugBtn.addEventListener('click', () => {
+            if (debugText.style.display === 'none') {
+                debugText.style.display = 'block';
+                debugBtn.textContent = '🔒 Ocultar Texto';
+            } else {
+                debugText.style.display = 'none';
+                debugBtn.textContent = '📋 Mostrar Texto Extraído';
+            }
+        });
+
+        // Upload interactions - múltiplas formas
+        uploadBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Botão clicado');
+            fileInput.click();
+        });
+        
+        uploadArea.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Área clicada');
+            fileInput.click();
+        });
+        
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadArea.classList.add('dragover');
         });
-        uploadArea.addEventListener('dragleave', () => {
+        
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
             uploadArea.classList.remove('dragover');
         });
+        
         uploadArea.addEventListener('drop', (e) => {
            e.preventDefault();
            uploadArea.classList.remove('dragover');
            const files = e.dataTransfer.files;
            if (files.length > 0) {
+               console.log('Arquivo dropado:', files[0].name);
                handleFile(files[0]);
            }
        });
 
        fileInput.addEventListener('change', (e) => {
+           console.log('Input file changed');
            if (e.target.files.length > 0) {
+               console.log('Arquivo selecionado:', e.target.files[0].name);
                handleFile(e.target.files[0]);
            }
        });
-
-       toggleManual.addEventListener('click', () => {
-           manualMode = !manualMode;
-           if (manualMode) {
-               manualInput.style.display = 'block';
-               toggleManual.textContent = '📋 Voltar para Upload PDF';
-           } else {
-               manualInput.style.display = 'none';
-               toggleManual.textContent = '📝 Adicionar/Editar Dados Manualmente';
-           }
-       });
-
-       toggleDebug.addEventListener('click', () => {
-           debugMode = !debugMode;
-           if (debugMode) {
-               debugSection.style.display = 'block';
-               toggleDebug.textContent = '🔍 Ocultar Debug';
-               if (extractedText) {
-                   document.getElementById('debugText').textContent = extractedText;
-               }
-           } else {
-               debugSection.style.display = 'none';
-               toggleDebug.textContent = '🔍 Mostrar Debug';
-           }
-       });
-
-       addStudentBtn.addEventListener('click', addStudent);
 
        function showError(message) {
            errorMsg.textContent = message;
@@ -874,7 +721,7 @@
 
        function showFileInfo(fileName, studentCount) {
            document.getElementById('fileName').textContent = fileName;
-           document.getElementById('fileDetails').textContent = `${studentCount} estudantes encontrados no PDF`;
+           document.getElementById('fileDetails').textContent = `${studentCount} estudantes encontrados`;
            fileInfo.style.display = 'block';
        }
 
@@ -892,9 +739,6 @@
                row.innerHTML = `
                    <div>${student.name || 'Sem nome'}</div>
                    <div>${student.period1 !== null && student.period1 !== undefined ? student.period1.toFixed(1) : '-'}</div>
-                   <div>${student.period2 !== null && student.period2 !== undefined ? student.period2.toFixed(1) : '-'}</div>
-                   <div>${student.period3 !== null && student.period3 !== undefined ? student.period3.toFixed(1) : '-'}</div>
-                   <div>${student.period4 !== null && student.period4 !== undefined ? student.period4.toFixed(1) : '-'}</div>
                    <div>${frequencyIcon} ${student.frequency || 'N/I'}</div>
                `;
                
@@ -904,86 +748,12 @@
            dataPreview.style.display = 'block';
        }
 
-       function addStudent() {
-           const name = document.getElementById('studentName').value.trim();
-           const p1 = document.getElementById('period1').value.trim();
-           const p2 = document.getElementById('period2').value.trim();
-           const p3 = document.getElementById('period3').value.trim();
-           const p4 = document.getElementById('period4').value.trim();
-           const frequency = document.getElementById('studentFrequency').value;
-           
-           if (!name) {
-               showError('Por favor, preencha o nome do estudante');
-               return;
-           }
-           
-           const student = {
-               name: name,
-               period1: p1 ? parseFloat(p1) : null,
-               period2: p2 ? parseFloat(p2) : null,
-               period3: p3 ? parseFloat(p3) : null,
-               period4: p4 ? parseFloat(p4) : null,
-               frequency: frequency
-           };
-           
-           studentsData.push(student);
-           
-           // Limpar formulário
-           document.getElementById('studentName').value = '';
-           document.getElementById('period1').value = '';
-           document.getElementById('period2').value = '';
-           document.getElementById('period3').value = '';
-           document.getElementById('period4').value = '';
-           
-           updateStudentList();
-           calculateStatistics(studentsData, 'Entrada Manual');
-           showSuccess(`Estudante ${name} adicionado! ${frequency}`);
-       }
-
-       function updateStudentList() {
-           const studentList = document.getElementById('studentList');
-           studentList.innerHTML = '';
-           
-           studentsData.forEach((student, index) => {
-               const item = document.createElement('div');
-               item.className = 'student-item';
-               
-               const frequency = student.frequency || 'N/I';
-               
-               item.innerHTML = `
-                   <div>${student.name}</div>
-                   <div>${student.period1 !== null ? student.period1.toFixed(1) : '-'}</div>
-                   <div>${student.period2 !== null ? student.period2.toFixed(1) : '-'}</div>
-                   <div>${student.period3 !== null ? student.period3.toFixed(1) : '-'}</div>
-                   <div>${student.period4 !== null ? student.period4.toFixed(1) : '-'}</div>
-                   <div>${frequency}</div>
-                   <button class="delete-btn" onclick="removeStudent(${index})">✕</button>
-               `;
-               
-               studentList.appendChild(item);
-           });
-       }
-
-       function removeStudent(index) {
-           studentsData.splice(index, 1);
-           updateStudentList();
-           
-           if (studentsData.length > 0) {
-               calculateStatistics(studentsData, 'Entrada Manual');
-               showDataPreview(studentsData);
-           } else {
-               results.style.display = 'none';
-               dataPreview.style.display = 'none';
-               showSuccess('Todos os estudantes foram removidos');
-           }
-       }
-
        function handleFile(file) {
            const fileName = file.name;
            const fileExtension = fileName.split('.').pop().toLowerCase();
 
-           if (fileExtension !== 'pdf') {
-               showError('Formato de arquivo não suportado. Use apenas arquivos PDF');
+           if (!['pdf', 'xlsx', 'xls'].includes(fileExtension)) {
+               showError('Formato de arquivo não suportado. Use arquivos PDF, XLSX ou XLS');
                return;
            }
 
@@ -993,18 +763,24 @@
            
            const reader = new FileReader();
            reader.onload = (e) => {
-               processPDF(e.target.result, fileName);
+               if (fileExtension === 'pdf') {
+                   processPDFToExcel(e.target.result, fileName);
+               } else {
+                   processExcelFile(e.target.result, fileName);
+               }
            };
 
            reader.readAsArrayBuffer(file);
        }
 
-       async function processPDF(arrayBuffer, fileName) {
+       async function processPDFToExcel(arrayBuffer, fileName) {
            try {
+               showSuccess('Convertendo PDF para formato Excel... Por favor aguarde.');
+               
+               // Extrair texto do PDF
                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
                let fullText = '';
                
-               // Extrair texto de todas as páginas
                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                    const page = await pdf.getPage(pageNum);
                    const textContent = await page.getTextContent();
@@ -1012,18 +788,24 @@
                    fullText += pageText + '\n';
                }
                
+               // Mostrar debug
                extractedText = fullText;
+               debugSection.style.display = 'block';
+               debugText.textContent = fullText;
                
-               // Atualizar debug se estiver ativo
-               if (debugMode) {
-                   document.getElementById('debugText').textContent = extractedText;
+               // Converter texto em estrutura Excel-like
+               const excelData = convertPDFTextToExcelStructure(fullText);
+               
+               if (!excelData || excelData.length === 0) {
+                   showError('Não foi possível converter o PDF. Verifique se é um boletim válido da SEE-PB.');
+                   return;
                }
                
-               // Processar o texto extraído
-               const students = parseBoletimText(fullText);
+               // Processar como se fosse Excel
+               const students = processExcelData(excelData, fileName);
                
                if (students.length === 0) {
-                   showError('Não foi possível extrair dados do PDF. Verifique se é um boletim escolar válido da SEE-PB. Use o botão Debug para ver o texto extraído.');
+                   showError('Nenhum estudante encontrado após conversão. Verifique o formato do PDF.');
                    return;
                }
                
@@ -1032,179 +814,277 @@
                calculateStatistics(students, fileName);
                
            } catch (error) {
-               console.error('Erro ao processar PDF:', error);
-               showError('Erro ao processar PDF: ' + error.message);
+               console.error('Erro ao converter PDF:', error);
+               showError('Erro ao converter PDF: ' + error.message);
            }
        }
 
-       function parseBoletimText(text) {
-           const students = [];
+       function convertPDFTextToExcelStructure(text) {
+           console.log('=== CONVERTENDO PDF PARA ESTRUTURA EXCEL ===');
+           
            const lines = text.split('\n');
+           const excelRows = [];
            
-           let inStudentSection = false;
-           
+           // Procurar por linhas que contenham dados de estudantes
            for (let i = 0; i < lines.length; i++) {
-               const line = lines[i].trim();
+               let line = lines[i].trim().replace(/\s+/g, ' ');
                
-               // Identificar seções de estudantes
-               if (line.toLowerCase().includes('estudante') || 
-                   line.toLowerCase().includes('aluno') ||
-                   line.includes('PERÍODO') ||
-                   line.includes('1º') ||
-                   line.includes('2º') ||
-                   line.includes('NOME')) {
-                   inStudentSection = true;
+               // Pular linhas de cabeçalho e rodapé
+               if (line.includes('ECIT HENRIQUE') || 
+                   line.includes('Curso técnico') ||
+                   line.includes('Secretaria de Estado') ||
+                   line.includes('SIAGE Professor') ||
+                   line.includes('Data da emissão') ||
+                   line.includes('Usuário:') ||
+                   line.includes('Estas informações') ||
+                   line.length < 20) {
                    continue;
                }
                
-               // Parar se encontrar fim dos dados
-               if (line.toLowerCase().includes('data da emissão') || 
-                   line.toLowerCase().includes('usuário') ||
-                   line.toLowerCase().includes('total') ||
-                   line.toLowerCase().includes('média') ||
-                   line.toLowerCase().includes('observações')) {
-                   break;
-               }
-               
-               if (inStudentSection && line.length > 5) {
-                   // Tentar extrair dados do estudante
-                   const student = parseStudentLine(line);
-                   if (student && student.name && student.name.length > 2) {
-                       // Verificar se não é cabeçalho ou linha inválida
-                       if (!student.name.toLowerCase().includes('período') &&
-                           !student.name.toLowerCase().includes('nome') &&
-                           !student.name.toLowerCase().includes('estudante') &&
-                           !student.name.toLowerCase().includes('média') &&
-                           !student.name.toLowerCase().includes('total')) {
-                           students.push(student);
-                       }
-                   }
-               }
-           }
-           
-           return students;
-       }
-
-       function parseStudentLine(line) {
-           // Limpar a linha
-           line = line.replace(/\s+/g, ' ').trim();
-           
-           // Padrões mais robustos para extrair dados
-           const patterns = [
-               // Padrão 1: Nome seguido de números e frequência
-               /^([A-ZÁÊÇÕÜÀÉÍÓÚ][a-záêçõüàéíóú\s]+?)\s+(\d+[,.]?\d*)\s+(\d+[,.]?\d*)\s*(\d+[,.]?\d*)?\s*(\d+[,.]?\d*)?\s*(Frequente|Infrequente)?/i,
-               
-               // Padrão 2: Separado por múltiplos espaços
-               /([A-ZÁÊÇÕÜÀÉÍÓÚ][a-záêçõüàéíóú\s]{3,}?)\s{2,}(\d+[,.]?\d*)\s+(\d+[,.]?\d*)/i,
-               
-               // Padrão 3: Com vírgulas como separadores
-               /([A-ZÁÊÇÕÜÀÉÍÓÚ][a-záêçõüàéíóú\s]+?)[,\s]+(\d+[,.]?\d*)[,\s]+(\d+[,.]?\d*)/i,
-               
-               // Padrão 4: Nome completo seguido de notas
-               /^([A-ZÁÊÇÕÜÀÉÍÓÚ][a-záêçõüàéíóú\s]+(?:DA|DE|DO|DOS|DAS|E)\s+[A-ZÁÊÇÕÜÀÉÍÓÚ][a-záêçõüàéíóú\s]*)\s+(\d+[,.]?\d*)\s+(\d+[,.]?\d*)/i
-           ];
-           
-           for (const pattern of patterns) {
-               const match = line.match(pattern);
-               if (match) {
-                   let name = match[1].trim();
-                   let period1 = match[2] ? parseFloat(match[2].replace(',', '.')) : null;
-                   let period2 = match[3] ? parseFloat(match[3].replace(',', '.')) : null;
-                   let period3 = match[4] ? parseFloat(match[4].replace(',', '.')) : null;
-                   let period4 = match[5] ? parseFloat(match[5].replace(',', '.')) : null;
-                   let frequency = match[6] || 'Frequente';
+               // Verificar se é linha de estudante
+               if ((line.includes('Frequente') || line.includes('Infrequente')) && 
+                   (line.includes('Cursando') || line.includes('Remanejado'))) {
                    
-                   // Limpar nome
-                   name = name.replace(/^\d+\s*/, ''); // Remove números no início
-                   name = name.replace(/\s{2,}/g, ' '); // Remove espaços duplos
+                   console.log('Convertendo linha de estudante:', line);
                    
-                   // Buscar frequência na linha se não encontrada no match
-                   if (!match[6]) {
-                       if (line.toLowerCase().includes('infrequente')) {
-                           frequency = 'Infrequente';
-                       } else {
-                           frequency = 'Frequente';
-                       }
-                   }
-                   
-                   // Validações
-                   if (name.length >= 3 && 
-                       !name.toLowerCase().includes('período') &&
-                       !name.toLowerCase().includes('nome') &&
-                       !name.toLowerCase().includes('média') &&
-                       period1 !== null && !isNaN(period1) && period1 >= 0 && period1 <= 10) {
-                       
-                       return {
-                           name: name,
-                           period1: period1,
-                           period2: period2 && !isNaN(period2) ? period2 : null,
-                           period3: period3 && !isNaN(period3) ? period3 : null,
-                           period4: period4 && !isNaN(period4) ? period4 : null,
-                           frequency: frequency
-                       };
-                   }
-               }
-           }
-           
-           return null;
-       }
+                   // Extrair dados da linha
+                   const rowData = extractDataFromLine(line);
+                   if (rowData) {
+                       excelRows.push(rowData);
+                       console.log('Linha Excel criada:', rowData);
+                  }
+              }
+          }
+          
+          console.log('Total de linhas Excel criadas:', excelRows.length);
+          return excelRows;
+      }
 
-       function calculateStatistics(students, fileName) {
-           const totalStudents = students.length;
-           
-           if (totalStudents === 0) {
-               showError('Nenhum estudante encontrado');
-               return;
-           }
+      function extractDataFromLine(line) {
+          // Encontrar frequência
+          let frequency = line.includes('Frequente') ? 'Frequente' : 'Infrequente';
+          
+          // Remover parte final
+          let dataLine = line.replace(/\s+(Frequente|Infrequente)\s+(Cursando|Remanejado).*$/, '');
+          
+          // Dividir em partes
+          let parts = dataLine.split(' ');
+          
+          // Procurar pela nota
+          let gradeIndex = -1;
+          let gradeValue = '';
+          
+          for (let i = 0; i < parts.length; i++) {
+              if (parts[i].match(/^\d+,\d+$/) || parts[i] === '-') {
+                  // Verificar se após vem sequência de traços
+                  let dashesAfter = 0;
+                  for (let j = i + 1; j < Math.min(i + 8, parts.length); j++) {
+                      if (parts[j] === '-') dashesAfter++;
+                  }
+                  
+                  if (dashesAfter >= 4) {
+                      gradeIndex = i;
+                      gradeValue = parts[i];
+                      break;
+                  }
+              }
+          }
+          
+          if (gradeIndex >= 0) {
+              // Nome é tudo antes da nota
+              let nameParts = parts.slice(0, gradeIndex);
+              let name = nameParts.join(' ').trim();
+              
+              if (name.length >= 3) {
+                  return {
+                      'ESTUDANTES': name,
+                      'MÉDIA DO 1º PERÍODO': gradeValue,
+                      'FREQUÊNCIA': frequency
+                  };
+              }
+          }
+          
+          return null;
+      }
 
-           let passCount = 0;
-           let lowGradeCount = 0;
-           let frequentCount = 0;
-           let infrequentCount = 0;
-           let totalGradeSum = 0;
-           let validGradeCount = 0;
+      async function processExcelFile(arrayBuffer, fileName) {
+          try {
+              showSuccess('Processando arquivo Excel... Por favor aguarde.');
+              
+              // Ler arquivo Excel
+              const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+              const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+              const excelData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+              
+              // Processar dados do Excel
+              const students = processExcelData(excelData, fileName);
+              
+              if (students.length === 0) {
+                  showError('Nenhum estudante encontrado no arquivo Excel. Verifique o formato.');
+                  return;
+              }
+              
+              studentsData = students;
+              showDataPreview(students);
+              calculateStatistics(students, fileName);
+              
+          } catch (error) {
+              console.error('Erro ao processar Excel:', error);
+              showError('Erro ao processar arquivo Excel: ' + error.message);
+          }
+      }
 
-           students.forEach(student => {
-               // Calcular média dos períodos disponíveis
-               const grades = [student.period1, student.period2, student.period3, student.period4].filter(g => g !== null && g !== undefined && !isNaN(g));
-               
-               if (grades.length > 0) {
-                   const average = grades.reduce((sum, grade) => sum + grade, 0) / grades.length;
-                   
-                   if (average >= 7.0) passCount++;
-                   if (average < 5.0) lowGradeCount++;
-                   
-                   totalGradeSum += average;
-                   validGradeCount++;
-               }
+      function processExcelData(data, fileName) {
+          console.log('=== PROCESSANDO DADOS EXCEL ===');
+          
+          const students = [];
+          let headerRow = -1;
+          let studentsCol = -1;
+          let period1Col = -1;
+          let frequencyCol = -1;
+          
+          // Se os dados vieram da conversão PDF, já estão no formato correto
+          if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object' && data[0]['ESTUDANTES']) {
+              console.log('Dados já no formato objeto, processando...');
+              data.forEach(row => {
+                  if (row['ESTUDANTES'] && row['ESTUDANTES'].length >= 3) {
+                      let gradeValue = 0;
+                      let gradeText = row['MÉDIA DO 1º PERÍODO'];
+                      
+                      if (gradeText && gradeText !== '-') {
+                          gradeValue = parseFloat(gradeText.toString().replace(',', '.'));
+                          if (isNaN(gradeValue)) gradeValue = 0;
+                      }
+                      
+                      students.push({
+                          name: row['ESTUDANTES'],
+                          period1: gradeValue,
+                          period2: null,
+                          period3: null,
+                          period4: null,
+                          frequency: row['FREQUÊNCIA'] || 'Frequente'
+                      });
+                  }
+              });
+              
+              console.log('Estudantes processados do formato objeto:', students.length);
+              return students;
+          }
+          
+          // Processar dados de Excel tradicional (array de arrays)
+          for (let i = 0; i < data.length; i++) {
+              const row = data[i];
+              if (!row || row.length === 0) continue;
+              
+              // Procurar cabeçalho
+              const rowText = row.join(' ').toLowerCase();
+              if (rowText.includes('estudantes') && rowText.includes('período')) {
+                  headerRow = i;
+                  
+                  // Encontrar colunas
+                  for (let j = 0; j < row.length; j++) {
+                      const cell = (row[j] || '').toString().toLowerCase();
+                      if (cell.includes('estudantes')) studentsCol = j;
+                      if (cell.includes('média') && cell.includes('1º')) period1Col = j;
+                      if (cell.includes('frequência')) frequencyCol = j;
+                  }
+                  
+                  console.log(`Cabeçalho encontrado na linha ${i}`);
+                  console.log(`Colunas: Estudantes=${studentsCol}, 1º Período=${period1Col}, Frequência=${frequencyCol}`);
+                  break;
+              }
+          }
+          
+          if (headerRow === -1) {
+              console.log('Cabeçalho não encontrado no Excel');
+              return students;
+          }
+          
+          // Processar dados dos estudantes
+          for (let i = headerRow + 1; i < data.length; i++) {
+              const row = data[i];
+              if (!row || row.length === 0) continue;
+              
+              const name = row[studentsCol];
+              const grade = row[period1Col];
+              const frequency = row[frequencyCol];
+              
+              if (name && name.toString().trim().length >= 3) {
+                  let gradeValue = 0;
+                  if (grade && grade !== '-') {
+                      gradeValue = parseFloat(grade.toString().replace(',', '.'));
+                      if (isNaN(gradeValue)) gradeValue = 0;
+                  }
+                  
+                  students.push({
+                      name: name.toString().trim(),
+                      period1: gradeValue,
+                      period2: null,
+                      period3: null,
+                      period4: null,
+                      frequency: frequency ? frequency.toString() : 'Frequente'
+                  });
+              }
+          }
+          
+          console.log('Estudantes extraídos do Excel:', students.length);
+          return students;
+      }
 
-               if (student.frequency === 'Frequente') frequentCount++;
-               else if (student.frequency === 'Infrequente') infrequentCount++;
-           });
+      function calculateStatistics(students, fileName) {
+          const totalStudents = students.length;
+          
+          if (totalStudents === 0) {
+              showError('Nenhum estudante encontrado');
+              return;
+          }
 
-           const failCount = validGradeCount - passCount;
-           
-           const passRate = validGradeCount > 0 ? Math.round((passCount / validGradeCount) * 100) : 0;
-           const failRate = validGradeCount > 0 ? Math.round((failCount / validGradeCount) * 100) : 0;
-           const lowGradeRate = validGradeCount > 0 ? Math.round((lowGradeCount / validGradeCount) * 100) : 0;
-           const frequentRate = Math.round((frequentCount / totalStudents) * 100);
-           const infrequentRate = Math.round((infrequentCount / totalStudents) * 100);
-           const classAverage = validGradeCount > 0 ? (totalGradeSum / validGradeCount) : 0;
+          let passCount = 0;
+          let lowGradeCount = 0;
+          let frequentCount = 0;
+          let infrequentCount = 0;
+          let totalGradeSum = 0;
 
-           document.getElementById('passRate').textContent = passRate + '%';
-           document.getElementById('failRate').textContent = failRate + '%';
-           document.getElementById('avgGrade').textContent = classAverage.toFixed(1);
-           document.getElementById('lowGrades').textContent = lowGradeRate + '%';
-           document.getElementById('frequentStudents').textContent = frequentRate + '%';
-           document.getElementById('infrequentStudents').textContent = infrequentRate + '%';
+          students.forEach(student => {
+              // Usar apenas o 1º período - se for null, undefined, "--" ou vazio = 0
+              let period1Grade = student.period1;
+              if (period1Grade === null || period1Grade === undefined || period1Grade === '--' || period1Grade === '' || isNaN(period1Grade)) {
+                  period1Grade = 0;
+              } else {
+                  period1Grade = parseFloat(period1Grade);
+              }
+              
+              // Todos os cálculos baseados APENAS no 1º período
+              if (period1Grade >= 7.0) passCount++;
+              if (period1Grade < 5.0) lowGradeCount++;
 
-           showFileInfo(fileName, totalStudents);
-           showSuccess(`Análise concluída! ${totalStudents} estudantes processados. Média geral: ${classAverage.toFixed(1)} | Frequentes: ${frequentRate}% | Aprovados (≥7.0): ${passRate}%`);
-           results.style.display = 'block';
-       }
+              totalGradeSum += period1Grade;
 
-       // Tornar funções globais para onclick
-       window.removeStudent = removeStudent;
-   </script>
+              if (student.frequency === 'Frequente') frequentCount++;
+              else if (student.frequency === 'Infrequente') infrequentCount++;
+          });
+
+          const failCount = totalStudents - passCount;
+          
+          const passRate = Math.round((passCount / totalStudents) * 100);
+          const failRate = Math.round((failCount / totalStudents) * 100);
+          const lowGradeRate = Math.round((lowGradeCount / totalStudents) * 100);
+          const frequentRate = Math.round((frequentCount / totalStudents) * 100);
+          const infrequentRate = Math.round((infrequentCount / totalStudents) * 100);
+          const classAverage = Math.round((totalGradeSum / totalStudents) * 10) / 10;
+
+          document.getElementById('passRate').textContent = passRate + '%';
+          document.getElementById('failRate').textContent = failRate + '%';
+          document.getElementById('avgGrade').textContent = classAverage.toFixed(1);
+          document.getElementById('lowGrades').textContent = lowGradeRate + '%';
+          document.getElementById('lowGradesDetail').textContent = `${lowGradeCount} estudantes com média < 5.0 no 1º período`;
+          document.getElementById('frequentStudents').textContent = frequentRate + '%';
+          document.getElementById('infrequentStudents').textContent = infrequentRate + '%';
+
+          showFileInfo(fileName, totalStudents);
+          showSuccess(`Análise concluída! ${totalStudents} estudantes processados. Média geral do 1º período: ${classAverage.toFixed(1)} | Frequentes: ${frequentRate}%`);
+          results.style.display = 'block';
+      }
+  </script>
 </body>
 </html>
