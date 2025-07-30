@@ -682,19 +682,19 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-value" id="passRate">0%</div>
-                        <div class="stat-label">Estudantes ≥ 7.0</div>
+                        <div class="stat-label">Estudantes ≥ 7.0 (1º Período)</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="failRate">0%</div>
-                        <div class="stat-label">Estudantes < 7.0</div>
+                        <div class="stat-label">Estudantes < 7.0 (1º Período)</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="avgGrade">0.0</div>
-                        <div class="stat-label">Média da Turma</div>
+                        <div class="stat-label">Média da Turma (1º Período)</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="lowGrades">0%</div>
-                        <div class="stat-label">Notas < 5.0</div>
+                        <div class="stat-label">Notas < 5.0 (1º Período)</div>
                         <div style="font-size: 0.75rem; color: #666; margin-top: 0.5rem;" id="lowGradesDetail">
                             1º: 0 | 2º: 0 | 3º: 0 | 4º: 0
                         </div>
@@ -714,6 +714,10 @@
         <div class="footer">
             <p>Desenvolvido pelo Professor <a href="https://www.viniciuslisboa.com.br" target="_blank">Vinícius Lisboa</a></p>
             <p>ECIT Henrique Fernandes de Farias</p>
+            <p style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #444444; color: #999999; font-size: 0.8rem;">
+                ⚠️ <strong>Aviso Importante:</strong> O desenvolvedor/administrador do sistema não se responsabiliza pela veracidade dos dados inseridos ou extraídos. 
+                É responsabilidade do usuário verificar e validar todas as informações antes de utilizá-las em relatórios oficiais ou tomadas de decisão educacional.
+            </p>
         </div>
     </div>
 
@@ -956,61 +960,33 @@
        }
 
        function calculateStatistics(students, fileName) {
-           const validStudents = students.filter(s => s.period1 !== null || s.period2 !== null || s.period3 !== null || s.period4 !== null);
-           const totalStudents = validStudents.length;
+           const totalStudents = students.length;
            
            if (totalStudents === 0) {
-               showError('Nenhum estudante com notas válidas encontrado');
+               showError('Nenhum estudante encontrado');
                return;
            }
 
            let passCount = 0;
-           let studentsWithLowGrades = 0; // Estudantes com pelo menos uma nota < 5.0
+           let lowGradeCount = 0;
            let frequentCount = 0;
            let infrequentCount = 0;
            let totalGradeSum = 0;
-           let gradesCount = 0;
-           
-           // Contadores específicos para notas < 5.0 por período
-           let lowGradesPeriod1 = 0;
-           let lowGradesPeriod2 = 0;
-           let lowGradesPeriod3 = 0;
-           let lowGradesPeriod4 = 0;
 
-           validStudents.forEach(student => {
-               const grades = [student.period1, student.period2, student.period3, student.period4].filter(g => g !== null && !isNaN(g));
-               
-               // Verificar se o estudante tem pelo menos uma nota < 5.0
-               let hasLowGrade = false;
-               
-               // Verificar notas < 5.0 por período
-               if (student.period1 !== null && !isNaN(student.period1) && student.period1 < 5.0) {
-                   lowGradesPeriod1++;
-                   hasLowGrade = true;
-               }
-               if (student.period2 !== null && !isNaN(student.period2) && student.period2 < 5.0) {
-                   lowGradesPeriod2++;
-                   hasLowGrade = true;
-               }
-               if (student.period3 !== null && !isNaN(student.period3) && student.period3 < 5.0) {
-                   lowGradesPeriod3++;
-                   hasLowGrade = true;
-               }
-               if (student.period4 !== null && !isNaN(student.period4) && student.period4 < 5.0) {
-                   lowGradesPeriod4++;
-                   hasLowGrade = true;
+           students.forEach(student => {
+               // Usar apenas o 1º período - se for null, undefined, "--" ou vazio = 0
+               let period1Grade = student.period1;
+               if (period1Grade === null || period1Grade === undefined || period1Grade === '--' || period1Grade === '' || isNaN(period1Grade)) {
+                   period1Grade = 0;
+               } else {
+                   period1Grade = parseFloat(period1Grade);
                }
                
-               if (hasLowGrade) studentsWithLowGrades++;
-               
-               if (grades.length > 0) {
-                   const avgGrade = grades.reduce((sum, grade) => sum + grade, 0) / grades.length;
-                   
-                   if (avgGrade >= 7.0) passCount++;
+               // Todos os cálculos baseados APENAS no 1º período
+               if (period1Grade >= 7.0) passCount++;
+               if (period1Grade < 5.0) lowGradeCount++;
 
-                   totalGradeSum += avgGrade;
-                   gradesCount++;
-               }
+               totalGradeSum += period1Grade;
 
                if (student.frequency === 'Frequente') frequentCount++;
                else if (student.frequency === 'Infrequente') infrequentCount++;
@@ -1020,27 +996,21 @@
            
            const passRate = Math.round((passCount / totalStudents) * 100);
            const failRate = Math.round((failCount / totalStudents) * 100);
-           const lowGradeRate = Math.round((studentsWithLowGrades / totalStudents) * 100); // Porcentagem correta
+           const lowGradeRate = Math.round((lowGradeCount / totalStudents) * 100);
            const frequentRate = Math.round((frequentCount / totalStudents) * 100);
            const infrequentRate = Math.round((infrequentCount / totalStudents) * 100);
-           const classAverage = gradesCount > 0 ? Math.round((totalGradeSum / gradesCount) * 10) / 10 : 0;
-
-           // Calcular porcentagens por período
-           const period1Percent = Math.round((lowGradesPeriod1 / totalStudents) * 100);
-           const period2Percent = Math.round((lowGradesPeriod2 / totalStudents) * 100);
-           const period3Percent = Math.round((lowGradesPeriod3 / totalStudents) * 100);
-           const period4Percent = Math.round((lowGradesPeriod4 / totalStudents) * 100);
+           const classAverage = Math.round((totalGradeSum / totalStudents) * 10) / 10;
 
            document.getElementById('passRate').textContent = passRate + '%';
            document.getElementById('failRate').textContent = failRate + '%';
            document.getElementById('avgGrade').textContent = classAverage.toFixed(1);
            document.getElementById('lowGrades').textContent = lowGradeRate + '%';
-           document.getElementById('lowGradesDetail').textContent = `1º: ${lowGradesPeriod1} (${period1Percent}%) | 2º: ${lowGradesPeriod2} (${period2Percent}%) | 3º: ${lowGradesPeriod3} (${period3Percent}%) | 4º: ${lowGradesPeriod4} (${period4Percent}%)`;
+           document.getElementById('lowGradesDetail').textContent = `${lowGradeCount} estudantes com média < 5.0 no 1º período`;
            document.getElementById('frequentStudents').textContent = frequentRate + '%';
            document.getElementById('infrequentStudents').textContent = infrequentRate + '%';
 
            showFileInfo(fileName, totalStudents);
-           showSuccess(`Análise concluída! ${totalStudents} estudantes processados. Média geral: ${classAverage.toFixed(1)} | Frequentes: ${frequentRate}%`);
+           showSuccess(`Análise concluída! ${totalStudents} estudantes processados. Média geral do 1º período: ${classAverage.toFixed(1)} | Frequentes: ${frequentRate}%`);
            results.style.display = 'block';
        }
    </script>
